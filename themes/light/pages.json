@@ -54,7 +54,7 @@
     ],
     "variables": {
         "footerad": true,
-        "faviconlink": "",
+        "faviconlink": "https://cdn.discordapp.com/attachments/781694202516865057/846315285421096960/3617061.png",
         "home": {
             "title": "RelaxNodes - Home",
             "name": "RelaxNodes",
