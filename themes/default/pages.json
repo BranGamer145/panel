@@ -54,11 +54,11 @@
     ],
     "variables": {
         "footerad": true,
-        "faviconlink": "./assets/image/logo_square.png",
+        "faviconlink": "",
         "home": {
-            "title": "ParadiseHost - Home",
-            "name": "ParadiseHost",
-            "topmsg": "ParadiseHost",
+            "title": "RelaxNodes - Home",
+            "name": "RelaxNodes",
+            "topmsg": "RelaxNodest",
             "bottommsg": "An dashboard addition to the Pterodactyl Panel.",
             "buttontext": {
                 "loggedin": {
@@ -72,28 +72,28 @@
             }
         },
         "dashboard": {
-            "title": "ParadiseHost - Dashboard"
+            "title": "RelaxNodes - Dashboard"
         },
         "servers": {
             "title": {
-                "list": "ParadiseHost - Servers",
-                "create": "ParadiseHost - Create Server",
-                "modify": "ParadiseHost - Modify Server"
+                "list": "RelaxNodes - Servers",
+                "create": "RelaxNodes - Create Server",
+                "modify": "RelaxNodes - Modify Server"
             }
         },
         "error": {
-            "title": "ParadiseHost - 404"
+            "title": "RelaxNodes - 404"
         },
         "admin": {
             "title": {
-                "default": "ParadiseHost - Admin"
+                "default": "RelaxNodes - Admin"
             }
         },
         "store": {
-            "title": "ParadiseHost - Store"
+            "title": "RelaxNodes - Store"
         },
         "arcio": {
-            "title": "ParadiseHost - Arc.IO AFK Page"
+            "title": "RelaxNodes - Arc.IO AFK Page"
         }
     }
 }
