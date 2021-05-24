@@ -1,0 +1,60 @@
+<html>
+    <head>
+        <link rel="icon" type="image/png" href="<%= extra.faviconlink %>"/>
+        <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+        <link href="/assets/<%= theme %>/style.css" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Rubik&display=swap" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <title><%= extra.arcio.title %></title>
+        <% if (settings.api.arcio.enabled == true) { %>
+            <script async src="https://arc.io/widget.min.js#<%= settings.api.arcio.widgetid %>"></script>
+        <% } %>
+    </head>
+    <body>
+        <ul style="overflow: hidden;" class="ul">
+            <li style="float:left; margin-top: 12px; margin-left: 10%;"><a href="/" style="font-family: 'Rubik', sans-serif; font-size: 25px"><%= extra.home.name %></a></li>
+            <li style="float:right; margin-right: 20%" class="li">
+                <a href="<%= userinfo ? "/logout" : "/login"%>"><i class="fa fa-<%= userinfo ? "sign-out": "fw fa-user" %>" style="color: gray; margin-top: 10px;"></i></a>
+            </li>
+        </ul>
+        <% if (settings.api.arcio["afk page"].enabled == true) { %>
+            <center style="margin-top: 50px;">
+                <button class="button" onclick="window.location.href = '/dashboard'">Back</button>
+                <h1>Arc.IO AFK Page</h1>
+                <p>Every <% if (settings.api.arcio["afk page"].every !== 1) { %><%= settings.api.arcio["afk page"].every %> seconds<% } else { %>second<% } %>, you will get <%= settings.api.arcio["afk page"].coins == 1 ? "a" : settings.api.arcio["afk page"].coins %> coin<%= settings.api.arcio["afk page"].coins == 1 ? "" : "s" %>.</p>
+                <p>You will gain coins again in <span id="arciotimer"><%= settings.api.arcio["afk page"].every %></span> seconds.</p>
+                <p>You have gained <span id="arciogainedcoins">0</span> coins currently.</p>
+            </center>
+            
+            <script>
+<%- arcioafktext %>
+            </script>
+        <% } else { %>
+            <center style="margin-top: 50px;">
+                <h1>404 - Page not found.</h1>
+                <h3 id="darkness" onclick="darkness();">The resource requested could not be found.</h3>
+                <br><br>
+                <button class="button" onclick="window.location.href = '/';">Home</button>
+                <button class="button" onclick="window.history.back();">Go Back</button>
+            </center>
+            <script>
+                async function darkness() {
+                    document.getElementById('darkness').innerHTML = 'THE RESOURCE REQUESTED COULD NOT BE FOUND.';
+                    setTimeout(
+                        function() {
+                            document.getElementById('darkness').innerHTML = 'The resource requested could not be found.'
+                        }
+                    , 100);
+                }
+            </script>
+        <% } %>
+        <% if (extra.footerad == true) { %>
+            <footer>
+                <p style="padding: 10px;">
+                    ParadiseHost | Free 24/7 Hosting
+                </p>
+            </footer>
+        <% } %>
+    </body>
+</html>

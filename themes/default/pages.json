@@ -1,0 +1,99 @@
+{
+    "index": "index.ejs",
+    "notfound": "404.ejs",
+    "redirect": {
+        "callback": "/dashboard",
+        "failedcallback": "/",
+        "logout": "/",
+        "deleteserver": "/servers",
+        "updateservers": "/dashboard",
+        "createserver": "/servers",
+        "failedcreateserver": "/servers/new",
+        "modifyserver": "/servers",
+        "failedmodifyserver": "/servers/edit",
+        "setplan": "/admin",
+        "failedsetplan": "/admin",
+        "createserverdisabled": "/servers?err=disabled",
+        "modifyserverdisabled": "/servers?err=disabled",
+        "deleteserverdisabled": "/servers?err=disabled",
+        "regenpassword": "/dashboard",
+        "setresources": "/admin",
+        "failedsetresources": "/admin",
+        "renewserver": "/servers",
+        "setcoins": "/admin",
+        "failedsetcoins": "/admin",
+        "purchaseram": "/store",
+        "failedpurchaseram": "/store",
+        "purchasedisk": "/store",
+        "failedpurchasedisk": "/store",
+        "purchasecpu": "/store",
+        "failedpurchasecpu": "/store",
+        "purchaseservers": "/store",
+        "failedpurchaseservers": "/store",
+        "arcioerror": "/dashboard?err=arcio"
+    },
+    "pages": {
+        "dashboard": "dashboard.ejs",
+        "servers": "servers.ejs",
+        "servers/new": "create.ejs",
+        "servers/edit": "edit.ejs",
+        "admin": "admin.ejs",
+        "store": "store.ejs",
+        "arcio": "arcio.ejs"
+    },
+    "mustbeloggedin": [
+        "/dashboard",
+        "/servers",
+        "/servers/new",
+        "/servers/edit",
+        "/store",
+        "/arcio"
+    ],
+    "mustbeadmin": [
+        "/admin"
+    ],
+    "variables": {
+        "footerad": true,
+        "faviconlink": "./assets/image/logo_square.png",
+        "home": {
+            "title": "ParadiseHost - Home",
+            "name": "ParadiseHost",
+            "topmsg": "ParadiseHost",
+            "bottommsg": "An dashboard addition to the Pterodactyl Panel.",
+            "buttontext": {
+                "loggedin": {
+                    "text": "Dashboard",
+                    "link": "/dashboard"
+                },
+                "loggedout": {
+                    "text": "Login",
+                    "link": "/login"
+                }
+            }
+        },
+        "dashboard": {
+            "title": "ParadiseHost - Dashboard"
+        },
+        "servers": {
+            "title": {
+                "list": "ParadiseHost - Servers",
+                "create": "ParadiseHost - Create Server",
+                "modify": "ParadiseHost - Modify Server"
+            }
+        },
+        "error": {
+            "title": "ParadiseHost - 404"
+        },
+        "admin": {
+            "title": {
+                "default": "ParadiseHost - Admin"
+            }
+        },
+        "store": {
+            "title": "ParadiseHost - Store"
+        },
+        "arcio": {
+            "title": "ParadiseHost - Arc.IO AFK Page"
+        }
+    }
+}

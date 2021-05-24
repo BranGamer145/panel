@@ -1,0 +1,1601 @@
+{
+  "version": "0.3.1",
+  "defaulttheme": "default",
+  "website": {
+    "port": 80,
+    "secret": "change this website session secret password, make sure to change this for your website's security"
+  },
+  "pterodactyl": {
+    "domain": "pterodactyl panel domain",
+    "key": "pterodactyl panel admin api key with all read and writes"
+  },
+  "database": "sqlite://database.sqlite",
+  "guild": {
+    "name": "guild name",
+    "inviteLink": "invite link",
+    "eggChannelID": "egg list channel id"
+  },
+  "api": {
+    "client": {
+      "api": {
+        "enabled": true,
+        "code": "api token here, anyone who has access to this token can ran administrator settings"
+      },
+      "bot": {
+        "token": "bot token",
+        "joinguild": {
+          "_comment": "The Discord bot must be in these servers and have invite permissions.",
+          "enabled": true,
+          "guildid": [
+            "guild id",
+            "another guild id (optional)"
+          ]
+        }
+      },
+      "passwordgenerator": {
+        "signup": false,
+        "length": 8
+      },
+      "allow": {
+        "newusers": true,
+        "regen": true,
+        "server": {
+          "create": true,
+          "modify": true,
+          "delete": true
+        },
+        "overresourcessuspend": false,
+        "renewsuspendsystem": {
+          "_comment": "This feature requires a restart in order to work. Also, this requires every server to start suspended, or else this feature would not work for some servers.",
+          "enabled": false,
+          "time": 3600
+        }
+      },
+      "oauth2": {
+        "_comment": "Go to https://discord.dev/ and create an application to set these up.",
+        "id": "discord oauth2 application id",
+        "secret": "discord oauth2 application secret",
+        "link": "discord oauth2 application link without the '/callback'",
+        "callbackpath": "/callback",
+        "prompt": true,
+        "ip": {
+          "trust x-forwarded-for": true,
+          "block": [],
+          "duplicate check": false
+        }
+      },
+      "ratelimits": {
+        "/callback": 2,
+        "/create": 1,
+        "/delete": 1,
+        "/modify": 1,
+        "/updateinfo": 1,
+        "/setplan": 2,
+        "/admin": 1,
+        "/regen": 1,
+        "/renew": 1,
+        "/api/userinfo": 1
+      },
+      "packages": {
+        "default": "default",
+        "list": {
+          "default": {
+            "ram": 2048,
+            "disk": 1024,
+            "cpu": 100,
+            "servers": 2
+          }
+        }
+      },
+      "locations": {
+        "1": {
+          "name": [
+            "node1: Singapore"
+          ],
+          "_comment": "Make 'package' be null to allow anyone with enough resources in their plan to create a server with this location. Also, make the 'package' variable an array, like [], with the location names with quotes to make a user be required to have a plan in order to use the package.",
+          "package": null
+        }
+      },
+      "eggs": {
+        "nodejs": {
+          "display": "NodeJS",
+          "minimum": {
+            "ram": 1,
+            "disk": 1,
+            "cpu": 1
+          },
+          "maximum": {
+            "ram": null,
+            "disk": null,
+            "cpu": null
+          },
+          "info": {
+            "egg": 1,
+            "docker_image": "quay.io\/parkervcp\/pterodactyl-images:debian_nodejs-12",
+            "startup": "if [[ -d .git ]] && [[ {{AUTO_UPDATE}} == \"1\" ]]; then git pull; fi; if [[ ! -z ${ADITIONAL_NODE_PACKAGES} ]]; then \/usr\/local\/bin\/npm install ${ADITIONAL_NODE_PACKAGES}; fi; if [ -f \/home\/container\/package.json ]; then  \/usr\/local\/bin\/npm install --production; fi; \/usr\/local\/bin\/node \/home\/container\/{{BOT_JS_FILE}}",
+            "config": {
+              "files": "{}",
+              "startup": "{\r\n    \"done\": \"change this part\"\r\n}",
+              "logs": "{}",
+              "stop": "^c"
+          },
+          "scripts": {
+              "installation": {
+                  "script": "#!\/bin\/bash\r\n# NodeJS Bot Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\napt update\r\napt install -y git curl jq file unzip make gcc g++ python python-dev libtool\r\n\r\nmkdir -p \/mnt\/server\r\ncd \/mnt\/server\r\n\r\nif [ \"${USER_UPLOAD}\" == \"true\" ] || [ \"${USER_UPLOAD}\" == \"1\" ]; then\r\n    echo -e \"assuming user knows what they are doing have a good day.\"\r\n    exit 0\r\nfi\r\n\r\n## add git ending if it's not on the address\r\nif [[ ${GIT_ADDRESS} != *.git ]]; then\r\n    GIT_ADDRESS=${GIT_ADDRESS}.git\r\nfi\r\n\r\nif [ -z \"${USERNAME}\" ] && [ -z \"${ACCESS_TOKEN}\" ]; then\r\n    echo -e \"using anon api call\"\r\nelse\r\n    GIT_ADDRESS=\"https:\/\/${USERNAME}:${ACCESS_TOKEN}@$(echo -e ${GIT_ADDRESS} | cut -d\/ -f3-)\"\r\nfi\r\n\r\n## pull git js bot repo\r\nif [ \"$(ls -A \/mnt\/server)\" ]; then\r\n    echo -e \"\/mnt\/server directory is not empty.\"\r\n    if [ -d .git ]; then\r\n        echo -e \".git directory exists\"\r\n        if [ -f .git\/config ]; then\r\n            echo -e \"loading info from git config\"\r\n            ORIGIN=$(git config --get remote.origin.url)\r\n        else\r\n            echo -e \"files found with no git config\"\r\n            echo -e \"closing out without touching things to not break anything\"\r\n            exit 10\r\n        fi\r\n    fi\r\n\r\n    if [ \"${ORIGIN}\" == \"${GIT_ADDRESS}\" ]; then\r\n        echo \"pulling latest from github\"\r\n        git pull\r\n    fi\r\nelse\r\n    echo -e \"\/mnt\/server is empty.\\ncloning files into repo\"\r\n    if [ -z ${BRANCH} ]; then\r\n        echo -e \"cloning default branch\"\r\n        git clone ${GIT_ADDRESS} .\r\n    else\r\n        echo -e \"cloning ${BRANCH}'\"\r\n        git clone --single-branch --branch ${BRANCH} ${GIT_ADDRESS} .\r\n    fi\r\n\r\nfi\r\n\r\necho \"Installing nodejs packages\"\r\nif [[ ! -z ${NODE_PACKAGES} ]]; then\r\n    \/usr\/local\/bin\/npm install ${NODE_PACKAGES}\r\nfi\r\n\r\nif [ -f \/mnt\/server\/package.json ]; then\r\n    \/usr\/local\/bin\/npm install --production\r\nfi\r\n\r\necho -e \"install complete\"\r\nexit 0",
+                  "container": "node:14-buster-slim",
+                  "entrypoint": "bash"
+              }
+          },
+            "environment": [
+              {
+                "name": "Git Repo Address",
+                "description": "GitHub Repo to clone\r\n\r\nI.E. https:\/\/github.com\/github_username\/repo_name",
+                "env_variable": "GIT_ADDRESS",
+                "default_value": "",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "nullable|string"
+            },
+            {
+                "name": "Install Branch",
+                "description": "The branch of the bot to install.",
+                "env_variable": "BRANCH",
+                "default_value": "",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "nullable|string"
+            },
+            {
+                "name": "User Uploaded Files",
+                "description": "Skip all the install stuff if you are letting a user upload files.\r\n\r\n0 = false (default)\r\n1 = true",
+                "env_variable": "USER_UPLOAD",
+                "default_value": "0",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|bool"
+            },
+            {
+                "name": "Auto Update",
+                "description": "Pull the latest files on startup when using a GitHub repo.",
+                "env_variable": "AUTO_UPDATE",
+                "default_value": "0",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|boolean"
+            },
+            {
+                "name": "Bot js file",
+                "description": "The file that starts the bot.",
+                "env_variable": "BOT_JS_FILE",
+                "default_value": "index.js",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|string"
+            },
+            {
+                "name": "Additional Node packages",
+                "description": "Install additional node packages.\r\n\r\nUse spaces to separate.",
+                "env_variable": "NODE_PACKAGES",
+                "default_value": "",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "nullable|string"
+            },
+            {
+                "name": "Git Username",
+                "description": "Username to auth with git.",
+                "env_variable": "USERNAME",
+                "default_value": "",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "nullable|string"
+            },
+            {
+                "name": "Git Access Token",
+                "description": "Password to use with git.\r\n\r\nIt's best practice to use a Personal Access Token.\r\nhttps:\/\/github.com\/settings\/tokens\r\nhttps:\/\/gitlab.com\/-\/profile\/personal_access_tokens",
+                "env_variable": "ACCESS_TOKEN",
+                "default_value": "",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "nullable|string"
+            }
+          ],
+            "feature_limits": {
+              "databases": 1,
+              "backups": 2
+            }
+          }
+        },
+        "py": {
+          "display": "Python",
+          "minimum": {
+            "ram": 1,
+            "disk": 1,
+            "cpu": 1
+          },
+          "maximum": {
+            "ram": null,
+            "disk": null,
+            "cpu": null
+          },
+          "info": {
+            "egg": 2,
+            "images": "quay.io\/parkervcp\/pterodactyl-images:debian_python-3.8",
+            "startup": "if [[ -d .git ]] && [[ {{AUTO_UPDATE}} == \"1\" ]]; then git pull; fi; if [[ ! -z {{ADITIONAL_PY_PACKAGES}} ]]; then pip install -U --target .local\/lib\/python3.8\/site-packages {{ADITIONAL_PY_PACKAGES}}; fi; if [[ -f \/home\/container\/${REQUIREMENTS_FILE} ]]; then pip install -U --target .local\/lib\/python3.8\/site-packages -r ${REQUIREMENTS_FILE}; fi; \/usr\/local\/bin\/python \/home\/container\/{{BOT_PY_FILE}}",
+            "config": {
+              "files": "{}",
+              "startup": "{\r\n    \"done\": \"change this part\"\r\n}",
+              "logs": "{}",
+              "stop": "^C"
+          },
+          "scripts": {
+              "installation": {
+                  "script": "#!\/bin\/bash\r\n# Python Bot Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\napt update\r\napt install -y git curl jq file unzip make gcc g++ python python-dev libtool\r\n\r\nmkdir -p \/mnt\/server\r\ncd \/mnt\/server\r\n\r\nif [ \"${USER_UPLOAD}\" == \"true\" ] || [ \"${USER_UPLOAD}\" == \"1\" ]; then\r\n    echo -e \"assuming user knows what they are doing have a good day.\"\r\n    exit 0\r\nfi\r\n\r\n## add git ending if it's not on the address\r\nif [[ ${GIT_ADDRESS} != *.git ]]; then\r\n    GIT_ADDRESS=${GIT_ADDRESS}.git\r\nfi\r\n\r\nif [ -z \"${USERNAME}\" ] && [ -z \"${ACCESS_TOKEN}\" ]; then\r\n    echo -e \"using anon api call\"\r\nelse\r\n    GIT_ADDRESS=\"https:\/\/${USERNAME}:${ACCESS_TOKEN}@$(echo -e ${GIT_ADDRESS} | cut -d\/ -f3-)\"\r\nfi\r\n\r\n## pull git js bot repo\r\nif [ \"$(ls -A \/mnt\/server)\" ]; then\r\n    echo -e \"\/mnt\/server directory is not empty.\"\r\n    if [ -d .git ]; then\r\n        echo -e \".git directory exists\"\r\n        if [ -f .git\/config ]; then\r\n            echo -e \"loading info from git config\"\r\n            ORIGIN=$(git config --get remote.origin.url)\r\n        else\r\n            echo -e \"files found with no git config\"\r\n            echo -e \"closing out without touching things to not break anything\"\r\n            exit 10\r\n        fi\r\n    fi\r\n\r\n    if [ \"${ORIGIN}\" == \"${GIT_ADDRESS}\" ]; then\r\n        echo \"pulling latest from github\"\r\n        git pull\r\n    fi\r\nelse\r\n    echo -e \"\/mnt\/server is empty.\\ncloning files into repo\"\r\n    if [ -z ${BRANCH} ]; then\r\n        echo -e \"cloning default branch\"\r\n        git clone ${GIT_ADDRESS} .\r\n    else\r\n        echo -e \"cloning ${BRANCH}'\"\r\n        git clone --single-branch --branch ${BRANCH} ${GIT_ADDRESS} .\r\n    fi\r\n\r\nfi\r\n\r\nexport HOME=\/mnt\/server\r\n\r\necho \"Installing python requirements into folder\"\r\nif [[ ! -z ${PY_PACKAGES} ]]; then\r\n    pip install -U --target .local\/lib\/python3.8\/site-packages ${PY_PACKAGES}\r\nfi\r\n\r\nif [ -f \/mnt\/server\/requirements.txt ]; then\r\n    pip install -U --target .local\/lib\/python3.8\/site-packages -r ${REQUIREMENTS_FILE}\r\nfi\r\n\r\necho -e \"install complete\"\r\nexit 0",
+                  "container": "python:3.8-slim",
+                  "entrypoint": "bash"
+              }
+          },
+            "environment": [
+              {
+                "name": "Git Repo Address",
+                "description": "Git repo to clone\r\n\r\nI.E. https:\/\/github.com\/github_username\/repo_name",
+                "env_variable": "GIT_ADDRESS",
+                "default_value": "",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "nullable|string"
+            },
+            {
+                "name": "Git Branch",
+                "description": "What branch to pull from github.\r\n\r\nDefault is blank to pull the repo default branch",
+                "env_variable": "BRANCH",
+                "default_value": "",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "nullable|string"
+            },
+            {
+                "name": "User Uploaded Files",
+                "description": "Skip all the install stuff if you are letting a user upload files.\r\n\r\n0 = false (default)\r\n1 = true",
+                "env_variable": "USER_UPLOAD",
+                "default_value": "0",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|boolean"
+            },
+            {
+                "name": "Auto Update",
+                "description": "Pull the latest files on startup when using a GitHub repo.",
+                "env_variable": "AUTO_UPDATE",
+                "default_value": "0",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|boolean"
+            },
+            {
+                "name": "Bot py file",
+                "description": "The file that starts the bot.",
+                "env_variable": "BOT_PY_FILE",
+                "default_value": "bot.py",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|string"
+            },
+            {
+                "name": "Additional Python packages",
+                "description": "Install additional python packages.\r\n\r\nUse spaces to separate",
+                "env_variable": "PY_PACKAGES",
+                "default_value": "",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "nullable|string"
+            },
+            {
+                "name": "Git Username",
+                "description": "Username to auth with git.",
+                "env_variable": "USERNAME",
+                "default_value": "",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "nullable|string"
+            },
+            {
+                "name": "Git Access Token",
+                "description": "Password to use with git.\r\n\r\nIt's best practice to use a Personal Access Token.\r\nhttps:\/\/github.com\/settings\/tokens\r\nhttps:\/\/gitlab.com\/-\/profile\/personal_access_tokens",
+                "env_variable": "ACCESS_TOKEN",
+                "default_value": "",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "nullable|string"
+            },
+            {
+                "name": "Requirements file",
+                "description": "if there are other requirements files to choose from.",
+                "env_variable": "REQUIREMENTS_FILE",
+                "default_value": "requirements.txt",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|string"
+            }
+            ],
+            "feature_limits": {
+              "databases": 1,
+              "backups": 2
+            }
+          }
+        },
+        "paper": {
+          "display": "Minecraft: Paper",
+          "minimum": {
+            "ram": 1,
+            "disk": 1,
+            "cpu": 1
+          },
+          "maximum": {
+            "ram": null,
+            "disk": null,
+            "cpu": null
+          },
+          "info": {
+            "egg": 3,
+            "docker_image": "quay.io/pterodactyl/core:java",
+            "startup": "java -Xms128M -Xmx{{SERVER_MEMORY}}M -Dterminal.jline=false -Dterminal.ansi=true -jar {{SERVER_JARFILE}}",
+            "config": {
+              "files": "{\r\n    \"server.properties\": {\r\n        \"parser\": \"properties\",\r\n        \"find\": {\r\n            \"server-ip\": \"0.0.0.0\",\r\n            \"server-port\": \"{{server.build.default.port}}\"\r\n        }\r\n    }\r\n}",
+              "startup": "{\r\n    \"done\": \")! For help, type \",\r\n    \"userInteraction\": [\r\n        \"Go to eula.txt for more info.\"\r\n    ]\r\n}",
+              "logs": "{}",
+              "stop": "stop"
+          },
+          "scripts": {
+              "installation": {
+                  "script": "#!\/bin\/bash\r\n# Paper Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\napt update\r\napt install -y curl jq\r\n\r\nif [ -n \"${DL_PATH}\" ]; then\r\n    echo -e \"using supplied download url\"\r\n    DOWNLOAD_URL=`eval echo $(echo ${DL_PATH} | sed -e 's\/{{\/${\/g' -e 's\/}}\/}\/g')`\r\nelse\r\n    VER_EXISTS=`curl -s https:\/\/papermc.io\/api\/v1\/paper | jq -r --arg VERSION $MINECRAFT_VERSION '.versions[] | IN($VERSION)' | grep true`\r\n    LATEST_PAPER_VERSION=`curl -s https:\/\/papermc.io\/api\/v1\/paper | jq -r '.versions' | jq -r '.[0]'`\r\n    \r\n    if [ \"${VER_EXISTS}\" == \"true\" ]; then\r\n        echo -e \"Version is valid. Using version ${MINECRAFT_VERSION}\"\r\n    else\r\n        echo -e \"Using the latest paper version\"\r\n        MINECRAFT_VERSION=${LATEST_PAPER_VERSION}\r\n    fi\r\n    \r\n    BUILD_EXISTS=`curl -s https:\/\/papermc.io\/api\/v1\/paper\/${MINECRAFT_VERSION} | jq -r --arg BUILD ${BUILD_NUMBER} '.builds.all[] | IN($BUILD)' | grep true`\r\n    LATEST_PAPER_BUILD=`curl -s https:\/\/papermc.io\/api\/v1\/paper\/${MINECRAFT_VERSION} | jq -r '.builds.latest'`\r\n    \r\n    if [ \"${BUILD_EXISTS}\" == \"true\" ] || [ ${BUILD_NUMBER} == \"latest\" ]; then\r\n        echo -e \"Build is valid. Using version ${BUILD_NUMBER}\"\r\n    else\r\n        echo -e \"Using the latest paper build\"\r\n        BUILD_NUMBER=${LATEST_PAPER_BUILD}\r\n    fi\r\n    \r\n    echo \"Version being downloaded\"\r\n    echo -e \"MC Version: ${MINECRAFT_VERSION}\"\r\n    echo -e \"Build: ${BUILD_NUMBER}\"\r\n    DOWNLOAD_URL=https:\/\/papermc.io\/api\/v1\/paper\/${MINECRAFT_VERSION}\/${BUILD_NUMBER}\/download \r\nfi\r\n\r\ncd \/mnt\/server\r\n\r\necho -e \"running curl -o ${SERVER_JARFILE} ${DOWNLOAD_URL}\"\r\n\r\nif [ -f ${SERVER_JARFILE} ]; then\r\n    mv ${SERVER_JARFILE} ${SERVER_JARFILE}.old\r\nfi\r\n\r\ncurl -o ${SERVER_JARFILE} ${DOWNLOAD_URL}\r\n\r\nif [ ! -f server.properties ]; then\r\n    echo -e \"Downloading MC server.properties\"\r\n    curl -o server.properties https:\/\/raw.githubusercontent.com\/parkervcp\/eggs\/master\/minecraft\/java\/server.properties\r\nfi",
+                  "container": "debian:buster-slim",
+                  "entrypoint": "bash"
+              }
+          },
+            "environment": [
+              {
+                "name": "Minecraft Version",
+                "description": "The version of minecraft to download. \r\n\r\nLeave at latest to always get the latest version. Invalid versions will default to latest.",
+                "env_variable": "MINECRAFT_VERSION",
+                "default_value": "latest",
+                "user_viewable": true,
+                "user_editable": false,
+                "rules": "nullable|string|max:20"
+            },
+            {
+                "name": "Server Jar File",
+                "description": "The name of the server jarfile to run the server with.",
+                "env_variable": "SERVER_JARFILE",
+                "default_value": "server.jar",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|string|max:20"
+            },
+            {
+                "name": "Download Path",
+                "description": "A URL to use to download a server.jar rather than the ones in the install script. This is not user viewable.",
+                "env_variable": "DL_PATH",
+                "default_value": "",
+                "user_viewable": false,
+                "user_editable": false,
+                "rules": "nullable|string"
+            },
+            {
+                "name": "Build Number",
+                "description": "The build number for the paper release.\r\n\r\nLeave at latest to always get the latest version. Invalid versions will default to latest.",
+                "env_variable": "BUILD_NUMBER",
+                "default_value": "latest",
+                "user_viewable": true,
+                "user_editable": false,
+                "rules": "required|string|max:20"
+            }
+          ],
+            "feature_limits": {
+              "databases": 1,
+              "backups": 2
+            }
+          }
+        },
+        "bungeecord": {
+          "display": "Minecraft: Bungeecord",
+          "minimum": {
+            "ram": 1,
+            "disk": 1,
+            "cpu": 1
+          },
+          "maximum": {
+            "ram": null,
+            "disk": null,
+            "cpu": null
+          },
+          "info": {
+            "egg": 4,
+            "docker_image": "quay.io/pterodactyl/core:java",
+            "startup": "java -Xms128M -Xmx{{SERVER_MEMORY}}M -Dterminal.jline=false -Dterminal.ansi=true -jar {{SERVER_JARFILE}}",
+            "config": {
+                "files": "{\r\n    \"config.yml\": {\r\n        \"parser\": \"yaml\",\r\n        \"find\": {\r\n            \"listeners[0].query_enabled\": true,\r\n            \"listeners[0].query_port\": \"{{server.build.default.port}}\",\r\n            \"listeners[0].host\": \"0.0.0.0:{{server.build.default.port}}\",\r\n            \"servers.*.address\": {\r\n                \"regex:^(127\\\\.0\\\\.0\\\\.1|localhost)(:\\\\d{1,5})?$\": \"{{config.docker.interface}}$2\"\r\n            }\r\n        }\r\n    }\r\n}",
+                "startup": "{\r\n    \"done\": \"Listening on \",\r\n    \"userInteraction\": [\r\n        \"Listening on \/0.0.0.0:25577\"\r\n    ]\r\n}",
+                "logs": "{\r\n    \"custom\": false,\r\n    \"location\": \"proxy.log.0\"\r\n}",
+                "stop": "end"
+            },
+            "scripts": {
+                "installation": {
+                    "script": "#!\/bin\/bash\r\n# Bungeecord Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\napt update\r\napt install -y curl\r\n\r\ncd \/mnt\/server\r\n\r\nif [ -z \"${BUNGEE_VERSION}\" ] || [ \"${BUNGEE_VERSION}\" == \"latest\" ]; then\r\n    BUNGEE_VERSION=\"lastStableBuild\"\r\nfi\r\n\r\ncurl -o ${SERVER_JARFILE} https:\/\/ci.md-5.net\/job\/BungeeCord\/${BUNGEE_VERSION}\/artifact\/bootstrap\/target\/BungeeCord.jar",
+                    "container": "debian:buster-slim",
+                    "entrypoint": "bash"
+                }
+            },
+            "environment": [
+              {
+                "name": "Bungeecord Version",
+                "description": "The version of Bungeecord to download and use.",
+                "env_variable": "BUNGEE_VERSION",
+                "default_value": "latest",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|alpha_num|between:1,6"
+            },
+            {
+                "name": "Bungeecord Jar File",
+                "description": "The name of the Jarfile to use when running Bungeecord.",
+                "env_variable": "SERVER_JARFILE",
+                "default_value": "bungeecord.jar",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|regex:\/^([\\w\\d._-]+)(\\.jar)$\/"
+            }
+          ],
+            "feature_limits": {
+              "databases": 1,
+              "backups": 2
+            }
+          }
+        },
+        "spigot": {
+          "display": "Minecraft: Spigot",
+          "minimum": {
+            "ram": 1,
+            "disk": 1,
+            "cpu": 1
+          },
+          "maximum": {
+            "ram": null,
+            "disk": null,
+            "cpu": null
+          },
+          "info": {
+            "egg": 5,
+            "docker_image": "quay.io\/pterodactyl\/core:java-11",
+            "startup": "java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}",
+    "config": {
+        "files": "{\r\n    \"server.properties\": {\r\n        \"parser\": \"properties\",\r\n        \"find\": {\r\n            \"server-ip\": \"0.0.0.0\",\r\n            \"enable-query\": \"true\",\r\n            \"server-port\": \"{{server.build.default.port}}\",\r\n            \"query.port\": \"{{server.build.default.port}}\"\r\n        }\r\n    }\r\n}",
+        "startup": "{\r\n    \"done\": \")! For help, type \",\r\n    \"userInteraction\": [\r\n        \"Go to eula.txt for more info.\"\r\n    ]\r\n}",
+        "logs": "{\r\n    \"custom\": false,\r\n    \"location\": \"logs\/latest.log\"\r\n}",
+        "stop": "stop"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/ash\r\n# Spigot Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\n\r\napk add --no-cache --update curl git openjdk8 openssl bash nss\r\n\r\n## Only download if a path is provided, otherwise continue.\r\nif [ ! -z \"${DL_PATH}\" ]; then\r\n    cd \/mnt\/server\r\n\r\n    MODIFIED_DOWNLOAD=`eval echo $(echo ${DL_PATH} | sed -e 's\/{{\/${\/g' -e 's\/}}\/}\/g')`\r\n    curl -sSL -o ${SERVER_JARFILE} ${MODIFIED_DOWNLOAD}\r\nelse\r\n    cd \/srv\/\r\n    \r\n    wget https:\/\/hub.spigotmc.org\/jenkins\/job\/BuildTools\/lastSuccessfulBuild\/artifact\/target\/BuildTools.jar\r\n    \r\n    mv BuildTools.jar \/srv\/\r\n\r\n    java -jar BuildTools.jar --rev ${DL_VERSION}\r\n\r\n    mv spigot-*.jar \/mnt\/server\/${SERVER_JARFILE}\r\nfi",
+            "container": "alpine:3.9",
+            "entrypoint": "ash"
+        }
+    },
+            "environment": [
+              {
+                  "name": "Server Jar File",
+                  "description": "The name of the server jarfile to run the server with.",
+                  "env_variable": "SERVER_JARFILE",
+                  "default_value": "server.jar",
+                  "user_viewable": true,
+                  "user_editable": true,
+                  "rules": "required|regex:\/^([\\w\\d._-]+)(\\.jar)$\/"
+              },
+              {
+                  "name": "Download Path",
+                  "description": "A URL to use to download Spigot rather than building it on the server. This is not user viewable. Use <code>{{DL_VERSION}}<\/code> in the URL to automatically insert the assigned version into the URL. If you do not enter a URL Spigot will build directly in the container (this will fail on low memory containers).",
+                  "env_variable": "DL_PATH",
+                  "default_value": "",
+                  "user_viewable": false,
+                  "user_editable": false,
+                  "rules": "nullable|string"
+              },
+              {
+                  "name": "Spigot Version",
+                  "description": "The version of Spigot to download (using the --rev tag). Use \"latest\" for latest.",
+                  "env_variable": "DL_VERSION",
+                  "default_value": "latest",
+                  "user_viewable": true,
+                  "user_editable": true,
+                  "rules": "required|string|between:3,7"
+              }
+          ],
+            "feature_limits": {
+              "databases": 1,
+              "backups": 2
+            }
+          }
+        },
+        "purpur": {
+          "display": "Minecraft: Purpur",
+          "minimum": {
+            "ram": 1,
+            "disk": 1,
+            "cpu": 1
+          },
+          "maximum": {
+            "ram": null,
+            "disk": null,
+            "cpu": null
+          },
+          "info": {
+            "egg": 6,
+            "docker_image": "quay.io\/pterodactyl\/core:java-11",
+            "startup": "java -Xms128M -Xmx{{SERVER_MEMORY}}M -Dterminal.jline=false -Dterminal.ansi=true -jar {{SERVER_JARFILE}}",
+    "config": {
+        "files": "{\r\n    \"server.properties\": {\r\n        \"parser\": \"properties\",\r\n        \"find\": {\r\n            \"server-ip\": \"0.0.0.0\",\r\n            \"server-port\": \"{{server.build.default.port}}\"\r\n        }\r\n    }\r\n}",
+        "startup": "{\r\n    \"done\": \")! For help, type \",\r\n    \"userInteraction\": [\r\n        \"Go to eula.txt for more info.\"\r\n    ]\r\n}",
+        "logs": "{}",
+        "stop": "stop"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\n# Purpur Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\n\r\napt update\r\napt install -y curl jq\r\n\r\nVER_EXISTS=`curl -s https:\/\/purpur.pl3x.net\/api\/v1\/purpur | jq -r --arg VERSION $MINECRAFT_VERSION '.versions[] | contains($VERSION)' | grep true`\r\nLATEST_PURPUR_VERSION=`curl -s https:\/\/purpur.pl3x.net\/api\/v1\/purpur | jq -r '.versions' | jq -r '.[0]'`\r\n\r\nif [ \"${VER_EXISTS}\" == \"true\" ]; then\r\n    echo -e \"Version is valid. Using version ${MINECRAFT_VERSION}\"\r\nelse\r\n    echo -e \"Using the latest Purpur version\"\r\n    MINECRAFT_VERSION=${LATEST_PURPUR_VERSION}\r\nfi\r\n\r\nBUILD_EXISTS=`curl -s https:\/\/purpur.pl3x.net\/api\/v1\/purpur\/${MINECRAFT_VERSION} | jq -r --arg BUILD ${BUILD_NUMBER} '.builds.all[] | contains($BUILD)' | grep true`\r\nLATEST_PURPUR_BUILD=`curl -s https:\/\/purpur.pl3x.net\/api\/v1\/purpur\/${MINECRAFT_VERSION} | jq -r '.builds.latest'`\r\n\r\nif [ \"${BUILD_EXISTS}\" == \"true\" ] || [ ${BUILD_NUMBER} == \"latest\" ]; then\r\n    echo -e \"Build is valid. Using version ${BUILD_NUMBER}\"\r\nelse\r\n    echo -e \"Using the latest Purpur build\"\r\n    BUILD_NUMBER=${LATEST_PURPUR_BUILD}\r\nfi\r\n\r\necho \"Version being downloaded\"\r\necho -e \"MC Version: ${MINECRAFT_VERSION}\"\r\necho -e \"Build: ${BUILD_NUMBER}\"\r\nDOWNLOAD_URL=https:\/\/purpur.pl3x.net\/api\/v1\/purpur\/${MINECRAFT_VERSION}\/${BUILD_NUMBER}\/download \r\n\r\n\r\ncd \/mnt\/server\r\n\r\necho -e \"running curl -o ${SERVER_JARFILE} ${DOWNLOAD_URL}\"\r\n\r\nif [ -f ${SERVER_JARFILE} ]; then\r\n    mv ${SERVER_JARFILE} ${SERVER_JARFILE}.old\r\nfi\r\n\r\ncurl -o ${SERVER_JARFILE} ${DOWNLOAD_URL}\r\n\r\nif [ ! -f server.properties ]; then\r\n    echo -e \"Downloading MC server.properties\"\r\n    curl -sSL -o server.properties https:\/\/raw.githubusercontent.com\/parkervcp\/eggs\/master\/minecraft\/java\/server.properties\r\nfi",
+            "container": "debian:buster-slim",
+            "entrypoint": "bash"
+        }
+    },
+            "environment": [
+              {
+                  "name": "Minecraft Version",
+                  "description": "The version of Minecraft to download. \r\n\r\nLeave at latest to always get the latest version. Invalid versions will default to latest.",
+                  "env_variable": "MINECRAFT_VERSION",
+                  "default_value": "latest",
+                  "user_viewable": true,
+                  "user_editable": true,
+                  "rules": "required|string|max:20"
+              },
+              {
+                  "name": "Server Jar File",
+                  "description": "The name of the .jar file to run the server with.",
+                  "env_variable": "SERVER_JARFILE",
+                  "default_value": "server.jar",
+                  "user_viewable": true,
+                  "user_editable": true,
+                  "rules": "required|regex:\/^([\\w\\d._-]+)(\\.jar)$\/|max:80"
+              },
+              {
+                  "name": "Build Number",
+                  "description": "The build number for the Purpur release.\r\n\r\nLeave at latest to always get the latest version. Invalid versions will default to latest.",
+                  "env_variable": "BUILD_NUMBER",
+                  "default_value": "latest",
+                  "user_viewable": true,
+                  "user_editable": true,
+                  "rules": "required|string|max:20"
+              }
+          ],
+            "feature_limits": {
+              "databases": 1,
+              "backups": 2
+            }
+          }
+        },
+        "forge": {
+          "display": "Minecraft: Forge",
+          "minimum": {
+            "ram": 1,
+            "disk": 1,
+            "cpu": 1
+          },
+          "maximum": {
+            "ram": null,
+            "disk": null,
+            "cpu": null
+          },
+          "info": {
+            "egg": 7,
+            "docker_image": "quay.io\/pterodactyl\/core:java-11",
+            "startup": "java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}",
+    "config": {
+        "files": "{\r\n    \"server.properties\": {\r\n        \"parser\": \"properties\",\r\n        \"find\": {\r\n            \"server-ip\": \"0.0.0.0\",\r\n            \"enable-query\": \"true\",\r\n            \"server-port\": \"{{server.build.default.port}}\",\r\n            \"query.port\": \"{{server.build.default.port}}\"\r\n        }\r\n    }\r\n}",
+        "startup": "{\r\n    \"done\": \")! For help, type \",\r\n    \"userInteraction\": [\r\n        \"Go to eula.txt for more info.\"\r\n    ]\r\n}",
+        "logs": "{\r\n    \"custom\": false,\r\n    \"location\": \"logs\/latest.log\"\r\n}",
+        "stop": "stop"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\n# Forge Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\napt update\r\napt install -y curl jq\r\n\r\n#Go into main direction\r\nif [ ! -d \/mnt\/server ]; then\r\n    mkdir \/mnt\/server\r\nfi\r\n\r\ncd \/mnt\/server\r\n\r\nif [ ! -z ${FORGE_VERSION} ]; then\r\n    DOWNLOAD_LINK=https:\/\/files.minecraftforge.net\/maven\/net\/minecraftforge\/forge\/${FORGE_VERSION}\/forge-${FORGE_VERSION}\r\nelse\r\n    JSON_DATA=$(curl -sSL https:\/\/files.minecraftforge.net\/maven\/net\/minecraftforge\/forge\/promotions_slim.json)\r\n\r\n    if [ \"${MC_VERSION}\" == \"latest\" ] || [ \"${MC_VERSION}\" == \"\" ] ; then\r\n        echo -e \"getting latest recommended version of forge.\"\r\n        MC_VERSION=$(echo -e ${JSON_DATA} | jq -r '.promos | del(.\"latest-1.7.10\") | del(.\"1.7.10-latest-1.7.10\") | to_entries[] | .key | select(contains(\"recommended\")) | split(\"-\")[0]' | sort -t. -k 1,1n -k 2,2n -k 3,3n -k 4,4n | tail -1)\r\n    \tBUILD_TYPE=recommended\r\n    fi\r\n\r\n    if [ \"${BUILD_TYPE}\" != \"recommended\" ] && [ \"${BUILD_TYPE}\" != \"latest\" ]; then\r\n        BUILD_TYPE=recommended\r\n    fi\r\n\r\n    echo -e \"minecraft version: ${MC_VERSION}\"\r\n    echo -e \"build type: ${BUILD_TYPE}\"\r\n\r\n    ## some variables for getting versions and things\r\n    FILE_SITE=$(echo -e ${JSON_DATA} | jq -r '.homepage' | sed \"s\/http:\/https:\/g\")\r\n    VERSION_KEY=$(echo -e ${JSON_DATA} | jq -r --arg MC_VERSION \"${MC_VERSION}\" --arg BUILD_TYPE \"${BUILD_TYPE}\" '.promos | del(.\"latest-1.7.10\") | del(.\"1.7.10-latest-1.7.10\") | to_entries[] | .key | select(contains($MC_VERSION)) | select(contains($BUILD_TYPE))')\r\n\r\n    ## locating the forge version\r\n    if [ \"${VERSION_KEY}\" == \"\" ] && [ \"${BUILD_TYPE}\" == \"recommended\" ]; then\r\n        echo -e \"dropping back to latest from recommended due to there not being a recommended version of forge for the mc version requested.\"\r\n        VERSION_KEY=$(echo -e ${JSON_DATA} | jq -r --arg MC_VERSION \"${MC_VERSION}\" '.promos | del(.\"latest-1.7.10\") | del(.\"1.7.10-latest-1.7.10\") | to_entries[] | .key | select(contains($MC_VERSION)) | select(contains(\"recommended\"))')\r\n    fi\r\n\r\n    ## Error if the mc version set wasn't valid.\r\n    if [ \"${VERSION_KEY}\" == \"\" ] || [ \"${VERSION_KEY}\" == \"null\" ]; then\r\n    \techo -e \"The install failed because there is no valid version of forge for the version on minecraft selected.\"\r\n    \texit 1\r\n    fi\r\n\r\n    FORGE_VERSION=$(echo -e ${JSON_DATA} | jq -r --arg VERSION_KEY \"$VERSION_KEY\" '.promos | .[$VERSION_KEY]')\r\n\r\n    if [ \"${MC_VERSION}\" == \"1.7.10\" ] || [ \"${MC_VERSION}\" == \"1.8.9\" ]; then\r\n        DOWNLOAD_LINK=${FILE_SITE}${MC_VERSION}-${FORGE_VERSION}-${MC_VERSION}\/forge-${MC_VERSION}-${FORGE_VERSION}-${MC_VERSION}\r\n        FORGE_JAR=forge-${MC_VERSION}-${FORGE_VERSION}-${MC_VERSION}.jar\r\n        if [ \"${MC_VERSION}\" == \"1.7.10\" ]; then\r\n            FORGE_JAR=forge-${MC_VERSION}-${FORGE_VERSION}-${MC_VERSION}-universal.jar\r\n        fi\r\n    else\r\n        DOWNLOAD_LINK=${FILE_SITE}${MC_VERSION}-${FORGE_VERSION}\/forge-${MC_VERSION}-${FORGE_VERSION}\r\n        FORGE_JAR=forge-${MC_VERSION}-${FORGE_VERSION}.jar\r\n    fi\r\nfi\r\n\r\n\r\n#Adding .jar when not eding by SERVER_JARFILE\r\nif [[ ! $SERVER_JARFILE = *\\.jar ]]; then\r\n  SERVER_JARFILE=\"$SERVER_JARFILE.jar\"\r\nfi\r\n\r\n#Downloading jars\r\necho -e \"Downloading forge version ${FORGE_VERSION}\"\r\necho -e \"Download link is ${DOWNLOAD_LINK}\"\r\nif [ ! -z \"${DOWNLOAD_LINK}\" ]; then \r\n    if curl --output \/dev\/null --silent --head --fail ${DOWNLOAD_LINK}-installer.jar; then\r\n        echo -e \"installer jar download link is valid.\"\r\n    else\r\n        echo -e \"link is invalid closing out\"\r\n        exit 2\r\n    fi\r\nelse\r\n    echo -e \"no download link closing out\"\r\n    exit 3\r\nfi\r\n\r\ncurl -s -o installer.jar -sS ${DOWNLOAD_LINK}-installer.jar\r\n\r\n#Checking if downloaded jars exist\r\nif [ ! -f .\/installer.jar ]; then\r\n    echo \"!!! Error by downloading forge version ${FORGE_VERSION} !!!\"\r\n    exit\r\nfi\r\n\r\n#Installing server\r\necho -e \"Installing forge server.\\n\"\r\njava -jar installer.jar --installServer || { echo -e \"install failed\"; exit 4; }\r\n\r\nmv $FORGE_JAR $SERVER_JARFILE\r\n\r\n#Deleting installer.jar\r\necho -e \"Deleting installer.jar file.\\n\"\r\nrm -rf installer.jar",
+            "container": "openjdk:8-jdk-slim",
+            "entrypoint": "bash"
+        }
+    },
+            "environment": [
+              {
+                  "name": "Server Jar File",
+                  "description": "The name of the Jarfile to use when running Forge Mod.",
+                  "env_variable": "SERVER_JARFILE",
+                  "default_value": "server.jar",
+                  "user_viewable": true,
+                  "user_editable": true,
+                  "rules": "required|regex:\/^([\\w\\d._-]+)(\\.jar)$\/"
+              },
+              {
+                  "name": "Forge version",
+                  "description": "The version of minecraft you want to install for.\r\n\r\nLeaving latest will install the latest recommended version.",
+                  "env_variable": "MC_VERSION",
+                  "default_value": "latest",
+                  "user_viewable": true,
+                  "user_editable": true,
+                  "rules": "required|string|max:9"
+              },
+              {
+                  "name": "Build Type",
+                  "description": "The type of server jar to download from forge.\r\n\r\nValid types are \"recommended\" and \"latest\".",
+                  "env_variable": "BUILD_TYPE",
+                  "default_value": "recommended",
+                  "user_viewable": true,
+                  "user_editable": true,
+                  "rules": "required|string|max:20"
+              },
+              {
+                  "name": "Forge Version",
+                  "description": "Gets an exact version.\r\n\r\nEx. 1.15.2-31.2.4\r\n\r\nOverrides MC_VERSION and BUILD_TYPE. If it fails to download the server files it will fail to install.",
+                  "env_variable": "FORGE_VERSION",
+                  "default_value": "",
+                  "user_viewable": true,
+                  "user_editable": true,
+                  "rules": "required|string|max:20"
+              }
+          ],
+            "feature_limits": {
+              "databases": 1,
+              "backups": 2
+            }
+          }
+        },
+        "vanillaPC": {
+          "display": "Minecraft: Vanilla Java",
+          "minimum": {
+            "ram": 1,
+            "disk": 1,
+            "cpu": 1
+          },
+          "maximum": {
+            "ram": null,
+            "disk": null,
+            "cpu": null
+          },
+          "info": {
+            "egg": 8,
+            "docker_image": "quay.io\/pterodactyl\/core:java-11",
+            "startup": "java -Xms128M -Xmx{{SERVER_MEMORY}}M -jar {{SERVER_JARFILE}}",
+            "config": {
+                "files": "{\r\n    \"server.properties\": {\r\n        \"parser\": \"properties\",\r\n        \"find\": {\r\n            \"server-ip\": \"0.0.0.0\",\r\n            \"enable-query\": \"true\",\r\n            \"server-port\": \"{{server.build.default.port}}\"\r\n        }\r\n    }\r\n}",
+                "startup": "{\r\n    \"done\": \")! For help, type \",\r\n    \"userInteraction\": [\r\n        \"Go to eula.txt for more info.\"\r\n    ]\r\n}",
+                "logs": "{\r\n    \"custom\": false,\r\n    \"location\": \"logs\/latest.log\"\r\n}",
+                "stop": "stop"
+            },
+            "scripts": {
+                "installation": {
+                    "script": "#!\/bin\/bash\r\n# Vanilla MC Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\napt update\r\napt install -y jq curl\r\n\r\nmkdir -p \/mnt\/server\r\ncd \/mnt\/server\r\n\r\nLATEST_VERSION=`curl https:\/\/launchermeta.mojang.com\/mc\/game\/version_manifest.json | jq -r '.latest.release'`\r\n\r\necho -e \"latest version is $LATEST_VERSION\"\r\n\r\nif [ -z \"$VANILLA_VERSION\" ] || [ \"$VANILLA_VERSION\" == \"latest\" ]; then\r\n  MANIFEST_URL=$(curl -sSL https:\/\/launchermeta.mojang.com\/mc\/game\/version_manifest.json | jq --arg VERSION $LATEST_VERSION -r '.versions | .[] | select(.id== $VERSION )|.url')\r\nelse\r\n  MANIFEST_URL=$(curl -sSL https:\/\/launchermeta.mojang.com\/mc\/game\/version_manifest.json | jq --arg VERSION $VANILLA_VERSION -r '.versions | .[] | select(.id== $VERSION )|.url')\r\nfi\r\n\r\nDOWNLOAD_URL=$(curl ${MANIFEST_URL} | jq .downloads.server | jq -r '. | .url')\r\n\r\necho -e \"running: curl -o ${SERVER_JARFILE} $DOWNLOAD_URL\"\r\ncurl -o ${SERVER_JARFILE} $DOWNLOAD_URL\r\n\r\necho -e \"Install Complete\"",
+                    "container": "debian:buster-slim",
+                    "entrypoint": "bash"
+                }
+            },
+            "environment": [
+              {
+                "name": "Server Jar File",
+                "description": "The name of the server jarfile to run the server with.",
+                "env_variable": "SERVER_JARFILE",
+                "default_value": "server.jar",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|regex:\/^([\\w\\d._-]+)(\\.jar)$\/"
+            },
+            {
+                "name": "Server Version",
+                "description": "The version of Minecraft Vanilla to install. Use \"latest\" to install the latest version.",
+                "env_variable": "VANILLA_VERSION",
+                "default_value": "latest",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|string|between:3,15"
+            }
+          ],
+            "feature_limits": {
+              "databases": 1,
+              "backups": 2
+            }
+          }
+        },
+        "vanillaBEDROCK": {
+          "display": "Minecraft: Vanilla Bedrock",
+          "minimum": {
+            "ram": 1,
+            "disk": 1,
+            "cpu": 1
+          },
+          "maximum": {
+            "ram": null,
+            "disk": null,
+            "cpu": null
+          },
+          "info": {
+            "egg": 9,
+            "docker_image": "quay.io\/parkervcp\/pterodactyl-images:base_debian",
+            "startup": ".\/bedrock_server",
+            "config": {
+                "files": "{\r\n    \"server.properties\": {\r\n        \"parser\": \"properties\",\r\n        \"find\": {\r\n            \"server-port\": \"{{server.build.default.port}}\",\r\n            \"server-name\": \"{{server.build.env.SERVERNAME}}\",\r\n            \"gamemode\": \"{{server.build.env.GAMEMODE}}\",\r\n            \"difficulty\": \"{{server.build.env.DIFFICULTY}}\",\r\n            \"allow-cheats\": \"{{server.build.env.CHEATS}}\"\r\n        }\r\n    }\r\n}",
+                "startup": "{\r\n    \"done\": \"Server started\"\r\n}",
+                "logs": "{}",
+                "stop": "stop"
+            },
+            "scripts": {
+                "installation": {
+                    "script": "#!\/bin\/bash\r\n\r\napt update\r\napt install -y zip unzip wget curl\r\n\r\nif [ ! -d \/mnt\/server\/ ]; then\r\n    mkdir \/mnt\/server\/\r\nfi\r\n\r\ncd \/mnt\/server\r\n\r\nif [ -z \"${BEDROCK_VERSION}\" ] || [ \"${BEDROCK_VERSION}\" == \"latest\" ]; then\r\n    echo -e \"\\n Downloading latest Bedrock server\"\r\n    DOWNLOAD_URL=$(curl -sSL https:\/\/www.minecraft.net\/en-us\/download\/server\/bedrock\/ | grep azureedge | grep linux | grep -Eo \"(http|https):\/\/[a-zA-Z0-9.\/?=_-]*\")\r\nelse \r\n    echo -e \"\\n Downloading ${BEDROCK_VERSION} Bedrock server\"\r\n    DOWNLOAD_URL=https:\/\/minecraft.azureedge.net\/bin-linux\/bedrock-server-$BEDROCK_VERSION.zip\r\nfi\r\n\r\necho -e \"backing up config files\"\r\nrm *.bak\r\ncp server.properties server.properties.bak\r\ncp permissions.json permissions.json.bak\r\ncp whitelist.json whitelist.json.bak\r\n\r\necho -e \"Downloading files from https:\/\/minecraft.azureedge.net\/bin-linux\/bedrock-server-$BEDROCK_VERSION.zip\"\r\n\r\nwget ${DOWNLOAD_URL}\r\n\r\necho -e \"Unpacking server files\"\r\nunzip -o $(echo ${DOWNLOAD_URL} | cut -d\"\/\" -f5)\r\n\r\necho -e \"Cleaning up after installing\"\r\nrm $(echo ${DOWNLOAD_URL} | cut -d\"\/\" -f5)\r\n\r\necho -e \"restoring config files\"\r\ncp -rf server.properties.bak server.properties\r\ncp -rf permissions.json.bak permissions.json\r\ncp -rf whitelist.json.bak whitelist.json\r\nchmod +x bedrock_server\r\n\r\necho -e \"Done\"",
+                    "container": "debian:buster-slim",
+                    "entrypoint": "bash"
+                }
+            },
+            "environment": [
+              {
+                "name": "Bedrock Version",
+                "description": "The version of bedrock. (Ex. 1.7.0.13)\r\n\r\nDefault version is latest.",
+                "env_variable": "BEDROCK_VERSION",
+                "default_value": "latest",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|string|max:20"
+            },
+            {
+                "name": "ld lib path",
+                "description": "Dumb reasons to need this",
+                "env_variable": "LD_LIBRARY_PATH",
+                "default_value": ".",
+                "user_viewable": false,
+                "user_editable": false,
+                "rules": "required|string|max:20"
+            },
+            {
+                "name": "Server Name",
+                "description": "The name for the server",
+                "env_variable": "SERVERNAME",
+                "default_value": "Bedrock Dedicated Server",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|string|max:50"
+            },
+            {
+                "name": "Gamemode",
+                "description": "Allowed values: \"survival\", \"creative\", or \"adventure\"",
+                "env_variable": "GAMEMODE",
+                "default_value": "survival",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|string|in:survival,creative,adventure"
+            },
+            {
+                "name": "Difficulty",
+                "description": "Allowed values: \"peaceful\", \"easy\", \"normal\", or \"hard\"",
+                "env_variable": "DIFFICULTY",
+                "default_value": "easy",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|string|in:peaceful,easy,normal,hard"
+            },
+            {
+                "name": "Allow cheats",
+                "description": "If true then cheats like commands can be used.\r\n\r\nAllowed values: \"true\" or \"false\"",
+                "env_variable": "CHEATS",
+                "default_value": "false",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|string|in:true,false"
+            }
+          ],
+            "feature_limits": {
+              "databases": 1,
+              "backups": 2
+            }
+          }
+        },
+        "pocketminemp": {
+          "display": "Minecraft: PocketmineMP",
+          "minimum": {
+            "ram": 1,
+            "disk": 1,
+            "cpu": 1
+          },
+          "maximum": {
+            "ram": null,
+            "disk": null,
+            "cpu": null
+          },
+          "info": {
+            "egg": 10,
+            "docker_image": "quay.io\/parkervcp\/pterodactyl-images:base_debian",
+            "startup": ".\/bin\/php7\/bin\/php .\/PocketMine-MP.phar --no-wizard --disable-ansi",
+    "config": {
+        "files": "{\r\n    \"server.properties\": {\r\n        \"parser\": \"properties\",\r\n        \"find\": {\r\n            \"server-ip\": \"0.0.0.0\",\r\n            \"enable-query\": \"true\",\r\n            \"server-port\": \"{{server.build.default.port}}\",\r\n            \"query.port\": \"{{server.build.default.port}}\"\r\n        }\r\n    }\r\n}",
+        "startup": "{\r\n    \"done\": \")! For help, type \",\r\n    \"userInteraction\": [\r\n        \"Go to eula.txt for more info.\"\r\n    ]\r\n}",
+        "logs": "{\r\n    \"custom\": false,\r\n    \"location\": \"server.log\"\r\n}",
+        "stop": "stop"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\n\r\napt update\r\napt install -y curl jq\r\n\r\ncd \/mnt\/server\r\n\r\n## get release info and download links\r\nLATEST_JSON=$(curl --silent \"https:\/\/api.github.com\/repos\/${GITHUB_PACKAGE}\/releases\/latest\")\r\nRELEASES=$(curl --silent \"https:\/\/api.github.com\/repos\/${GITHUB_PACKAGE}\/releases\")\r\n\r\nif [ -z \"${VERSION}\" ] || [ \"${VERSION}\" == \"latest\" ]; then\r\n    DOWNLOAD_LINK=$(echo ${LATEST_JSON} | jq .assets | jq -r .[].browser_download_url | grep -i ${MATCH})\r\nelse\r\n    VERSION_CHECK=$(echo ${RELEASES} | jq -r --arg VERSION \"${VERSION}\" '.[] | select(.tag_name==$VERSION) | .tag_name')\r\n    if [ \"${VERSION}\" == \"${VERSION_CHECK}\" ]; then\r\n        DOWNLOAD_LINK=$(echo ${RELEASES} | jq -r --arg VERSION \"${VERSION}\" '.[] | select(.tag_name==$VERSION) | .assets[].browser_download_url' | grep -i ${MATCH})\r\n    else\r\n        echo -e \"defaulting to latest release\"\r\n        DOWNLOAD_LINK=$(echo ${LATEST_JSON} | jq .assets | jq -r .[].browser_download_url)\r\n    fi\r\nfi\r\n\r\n## this is a simple script to validate a download url actaully exists\r\n\r\nif [ ! -z \"${DOWNLOAD_URL}\"]; then \r\n    if curl --output \/dev\/null --silent --head --fail ${DOWNLOAD_URL}; then\r\n        echo -e \"link is valid. setting download link to ${DOWNLOAD_URL}\"\r\n        DOWNLOAD_LINK=${DOWNLOAD_URL}\r\n    else        \r\n        echo -e \"link is invalid closing out\"\r\n        exit 2\r\n    fi\r\nfi\r\n\r\ncurl -sSL ${DOWNLOAD_LINK} > PocketMine-MP.phar\r\n\r\necho -e \"\\n downloading latest php7.4 build from pocketmine\"\r\ncurl -sSL -o php.binary.tar.gz https:\/\/jenkins.pmmp.io\/job\/PHP-7.4-Linux-x86_64\/lastSuccessfulBuild\/artifact\/PHP_Linux-x86_64.tar.gz\r\n\r\necho -e \"\\n getting default server.properties\"\r\ncurl -sSL https:\/\/raw.githubusercontent.com\/parkervcp\/eggs\/master\/minecraft\/bedrock\/pocketmine_mp\/server.properties > server.properties\r\n\r\necho -e \"\\n unpacking php7 binaries\"\r\ntar -xzvf php.binary.tar.gz\r\n\r\necho -e \"\\n removing php7 packages\"\r\nrm -rf \/mnt\/server\/php.binary.tar.gz\r\n\r\necho -e \"\\n creating files and folders\"\r\ntouch banned-ips.txt banned-players.txt ops.txt white-list.txt server.log\r\nmkdir -p players worlds plugins resource_packs",
+            "container": "debian:buster-slim",
+            "entrypoint": "bash"
+        }
+    },
+            "environment": [
+              {
+                "name": "PocketmineMP Version",
+                "description": "Version from Github",
+                "env_variable": "VERSION",
+                "default_value": "latest",
+                "user_viewable": true,
+                "user_editable": true,
+                "rules": "required|string|max:20"
+            },
+            {
+                "name": "Github Package",
+                "description": "",
+                "env_variable": "GITHUB_PACKAGE",
+                "default_value": "pmmp\/PocketMine-MP",
+                "user_viewable": false,
+                "user_editable": false,
+                "rules": "required|string|max:20"
+            },
+            {
+                "name": "Match",
+                "description": "",
+                "env_variable": "MATCH",
+                "default_value": "PocketMine-MP.phar",
+                "user_viewable": false,
+                "user_editable": false,
+                "rules": "required|string|max:20"
+            }
+            ],
+            "feature_limits": {
+              "databases": 1,
+              "backups": 2
+            }
+          }
+        },
+        "samp": {
+          "display": "GTA: SA-MP",
+          "minimum": {
+            "ram": 1,
+            "disk": 1,
+            "cpu": 1
+          },
+          "maximum": {
+            "ram": null,
+            "disk": null,
+            "cpu": null
+          },
+          "info": {
+            "egg": 11,
+            "docker_image": "quay.io\/parkervcp\/pterodactyl-images:game_samp",
+            "startup": ".\/samp03svr",
+    "config": {
+        "files": "{\r\n    \"server.cfg\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n            \"port\": \"port {{server.build.default.port}}\"\r\n        }\r\n    }\r\n}",
+        "startup": "{\r\n    \"done\": \"Started server on \",\r\n    \"userInteraction\": []\r\n}",
+        "logs": "{\r\n    \"custom\": true,\r\n    \"location\": \"samp.log\"\r\n}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\napt -y update\r\napt -y --no-install-recommends install curl unzip lib32gcc1 ca-certificates\r\n\r\ncd \/tmp\r\ncurl -sSL -o samp.tar.gz http:\/\/files.sa-mp.com\/samp037svr_R2-1.tar.gz\r\n\r\nmkdir -p \/mnt\/server\r\ntar -xzvf samp.tar.gz -C \/mnt\/server\/\r\ncp -r \/mnt\/server\/samp03\/* \/mnt\/server\r\nrm -rf \/mnt\/server\/samp03\/\r\ncd \/mnt\/server\r\nsed -i '3d' \/mnt\/server\/server.cfg\r\necho \"rcon_password changemeplease\" >> \/mnt\/server\/server.cfg\r\n\r\nchown -R root:root \/mnt\r\n\r\nexport HOME=\/mnt\/server",
+            "container": "ubuntu:16.04",
+            "entrypoint": "bash"
+        }
+    },
+            "environment": [],
+            "feature_limits": {
+              "databases": 1,
+              "backups": 2
+            }
+          }
+      },
+      "mta": {
+        "display": "GTA: Multi Theft Auto",
+        "minimum": {
+          "ram": 1,
+          "disk": 1,
+          "cpu": 1
+        },
+        "maximum": {
+          "ram": null,
+          "disk": null,
+          "cpu": null
+        },
+        "info": {
+          "egg": 12,
+          "docker_image": "quay.io\/parkervcp\/pterodactyl-images:ubuntu_source",
+          "startup": ".\/mta-server64 --port {{SERVER_PORT}} --httpport {{SERVER_WEBPORT}} -n",
+    "config": {
+        "files": "{}",
+        "startup": "{\r\n    \"done\": \"Server started and is ready to accept connections\"\r\n}",
+        "logs": "{\r\n    \"custom\": false,\r\n    \"location\": \"logs\/latest.log\"\r\n}",
+        "stop": "shutdown"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\napt -y update\r\napt -y --no-install-recommends install curl unzip lib32gcc1 ca-certificates\r\n\r\ncd \/tmp\r\ncurl -L -o multitheftauto_linux_x64.tar.gz https:\/\/linux.mtasa.com\/dl\/multitheftauto_linux_x64.tar.gz\r\ncurl -L -o mta-baseconfig.tar.gz https:\/\/linux.mtasa.com\/dl\/baseconfig.tar.gz\r\ncurl -L -o mtasa-resources-latest.zip http:\/\/mirror.mtasa.com\/mtasa\/resources\/mtasa-resources-latest.zip\r\n\r\nmkdir -p \/mnt\/server\r\ntar -xzvf multitheftauto_linux_x64.tar.gz\r\ncp -rf multitheftauto_linux_x64\/* \/mnt\/server\r\n\r\nif [ ! -f \/mnt\/server\/x64\/libmysqlclient.so.16 ]; then\r\n    curl -L http:\/\/nightly.mtasa.com\/files\/libmysqlclient.so.16 -o \/mnt\/server\/x64\/libmysqlclient.so.16\r\nfi\r\n\r\nmkdir -p \/mnt\/server\/mods\/deathmatch\/resources\r\nunzip -o -d \/mnt\/server\/mods\/deathmatch\/resources mtasa-resources-latest.zip\r\n\r\nmkdir -p \/mnt\/server-conf\r\ntar -xzvf mta-baseconfig.tar.gz\r\ncp -rf baseconfig\/* \/mnt\/server\/mods\/deathmatch\r\n\r\nchown -R root:root \/mnt\r\n\r\nexport HOME=\/mnt\/server",
+            "container": "ubuntu:18.04",
+            "entrypoint": "bash"
+        }
+    },
+          "environment": [
+            {
+              "name": "SERVER_WEBPORT",
+              "description": "The http port for web resource.\r\nThis Port needs to be the {{SERVER_PORT}}+3.",
+              "env_variable": "SERVER_WEBPORT",
+              "default_value": "22005",
+              "user_viewable": true,
+              "user_editable": false,
+              "rules": "required|numeric"
+          }
+          ],
+          "feature_limits": {
+            "databases": 1,
+            "backups": 2
+          }
+        }
+    },
+    "fivem": {
+      "display": "GTA: FiveM",
+      "minimum": {
+        "ram": 1,
+        "disk": 1,
+        "cpu": 1
+      },
+      "maximum": {
+        "ram": null,
+        "disk": null,
+        "cpu": null
+      },
+      "info": {
+        "egg": 13,
+        "docker_image": "quay.io\/parkervcp\/pterodactyl-images:base_debian",
+        "startup": "$(pwd)\/alpine\/opt\/cfx-server\/ld-musl-x86_64.so.1 --library-path \"$(pwd)\/alpine\/usr\/lib\/v8\/:$(pwd)\/alpine\/lib\/:$(pwd)\/alpine\/usr\/lib\/\" -- $(pwd)\/alpine\/opt\/cfx-server\/FXServer +set citizen_dir $(pwd)\/alpine\/opt\/cfx-server\/citizen\/ +set sv_licenseKey {{FIVEM_LICENSE}} +set steam_webApiKey {{STEAM_WEBAPIKEY}} +set sv_maxplayers {{MAX_PLAYERS}} +set serverProfile default +set txAdminPort {{TXADMIN_PORT}} $( [ \"$TXADMIN_ENABLE\" == \"1\" ] || printf %s '+exec server.cfg' )",
+        "config": {
+            "files": "{\r\n    \"server.cfg\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n            \"endpoint_add_tcp\": \"endpoint_add_tcp \\\"0.0.0.0:{{server.build.default.port}}\\\"\",\r\n            \"endpoint_add_udp\": \"endpoint_add_udp \\\"0.0.0.0:{{server.build.default.port}}\\\"\",\r\n            \"sv_hostname\": \"sv_hostname \\\"{{server.build.env.SERVER_HOSTNAME}}\\\"\",\r\n            \"set sv_licenseKey\": \"set sv_licenseKey {{server.build.env.FIVEM_LICENSE}}\",\r\n            \"set steam_webApiKey\": \"set steam_webApiKey {{server.build.env.STEAM_WEBAPIKEY}}\",\r\n            \"sv_maxclients\": \"sv_maxclients {{server.build.env.MAX_PLAYERS}}\"\r\n        }\r\n    }\r\n}",
+            "startup": "{\r\n    \"done\": \"succeeded. Welcome!\"\r\n}",
+            "logs": "{\r\n    \"custom\": true,\r\n    \"location\": \"logs\/latest.log\"\r\n}",
+            "stop": "^C"
+        },
+        "scripts": {
+            "installation": {
+                "script": "#!\/bin\/ash\r\n# FiveM Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\napt update -y\r\napt install -y tar xz-utils curl git file\r\n\r\nmkdir -p \/mnt\/server\/resources\r\n\r\ncd \/mnt\/server\r\n\r\necho \"updating citizenfx resource files\"\r\ngit clone https:\/\/github.com\/citizenfx\/cfx-server-data.git \/tmp\r\ncp -Rf \/tmp\/resources\/* resources\/ \r\n\r\nRELEASE_PAGE=$(curl -sSL https:\/\/runtime.fivem.net\/artifacts\/fivem\/build_proot_linux\/master\/)\r\n\r\nif [ \"${FIVEM_VERSION}\" == \"latest\" ] || [ -z ${FIVEM_VERSION} ] ; then\r\n    LATEST_RECOMMENDED=$(echo -e \"${RELEASE_PAGE}\" | grep \"LATEST RECOMMENDED\" -B1 | grep -Eo 'href=\".*\/*.tar.xz\"' | grep -Eo '\".*\"' | sed 's\/\\\"\/\/g' | sed 's\/\\.\\\/\/\/1')\r\n    DOWNLOAD_LINK=$(echo https:\/\/runtime.fivem.net\/artifacts\/fivem\/build_proot_linux\/master\/${LATEST_RECOMMENDED})\r\nelse\r\n    VERSION_LINK=$(echo -e \"${RELEASE_PAGE}\" | grep -Eo 'href=\".*\/*.tar.xz\"' | grep -Eo '\".*\"' | sed 's\/\\\"\/\/g' | sed 's\/\\.\\\/\/\/1' | grep ${FIVEM_VERSION})\r\n    if [ \"${VERSION_LINK}\" == \"\" ]; then\r\n        echo -e \"defaulting to latest as the version requested was invalid.\"\r\n    else\r\n        DOWNLOAD_LINK=$(echo https:\/\/runtime.fivem.net\/artifacts\/fivem\/build_proot_linux\/master\/${VERSION_LINK})\r\n    fi\r\nfi\r\n\r\nif [ ! -z \"${DOWNLOAD_URL}\" ]; then \r\n    if curl --output \/dev\/null --silent --head --fail ${DOWNLOAD_URL}; then\r\n        echo -e \"link is valid. setting download link to ${DOWNLOAD_URL}\"\r\n        DOWNLOAD_LINK=${DOWNLOAD_URL}\r\n    else\r\n        echo -e \"link is invalid closing out\"\r\n        exit 2\r\n    fi\r\nfi\r\n\r\necho -e \"Running curl -sSL ${DOWNLOAD_LINK} -o ${DOWNLOAD_LINK##*\/}\"\r\n\r\ncurl -sSL ${DOWNLOAD_LINK} -o ${DOWNLOAD_LINK##*\/}\r\n\r\necho \"Extracting fivem files\"\r\n\r\nFILETYPE=$(file -F ',' ${DOWNLOAD_LINK##*\/} | cut -d',' -f2 | cut -d' ' -f2)\r\nif [ \"$FILETYPE\" == \"gzip\" ]; then\r\n    tar xzvf ${DOWNLOAD_LINK##*\/}\r\nelif [ \"$FILETYPE\" == \"Zip\" ]; then\r\n    unzip ${DOWNLOAD_LINK##*\/}\r\nelif [ \"$FILETYPE\" == \"XZ\" ]; then\r\n    tar xvf ${DOWNLOAD_LINK##*\/}\r\nelse\r\n    echo -e \"unknown filetype. Exiting\"\r\n    exit 2 \r\nfi\r\n\r\nrm -rf ${DOWNLOAD_LINK##*\/} run.sh\r\n\r\nif [ -e server.cfg ]; then\r\n    echo \"server config file exists\"\r\nelse\r\n    echo \"Downloading default fivem config\"\r\n    curl https:\/\/raw.githubusercontent.com\/parkervcp\/eggs\/master\/gta\/fivem\/server.cfg >> server.cfg\r\nfi\r\n\r\nmkdir logs\/\r\n\r\necho \"install complete\"",
+                "container": "debian:buster-slim",
+                "entrypoint": "bash"
+            }
+        },
+        "environment": [
+          {
+            "name": "fivem license",
+            "description": "Required to start the service. Get your keys at https:\/\/keymaster.fivem.net\/",
+            "env_variable": "FIVEM_LICENSE",
+            "default_value": "",
+            "user_viewable": 1,
+            "user_editable": 1,
+            "rules": "required|string|max:32"
+        },
+        {
+            "name": "Max Players",
+            "description": "Set the fivem max play count",
+            "env_variable": "MAX_PLAYERS",
+            "default_value": "32",
+            "user_viewable": 1,
+            "user_editable": 0,
+            "rules": "required|integer|between:1,32"
+        },
+        {
+            "name": "Server Hostname",
+            "description": "The name that shows up in the server browser",
+            "env_variable": "SERVER_HOSTNAME",
+            "default_value": "My new Server!",
+            "user_viewable": 1,
+            "user_editable": 1,
+            "rules": "required|string"
+        },
+        {
+            "name": "fivem version",
+            "description": "The fivem version that is to be installed.\r\n\r\nan example is `1383-e5ea040353ce1b8bc86e37982bf5d888938e3096`\r\n\r\nYou can the latest version from here - https:\/\/runtime.fivem.net\/artifacts\/fivem\/build_proot_linux\/master\/",
+            "env_variable": "FIVEM_VERSION",
+            "default_value": "latest",
+            "user_viewable": 1,
+            "user_editable": 1,
+            "rules": "required|string|max:50"
+        },
+        {
+            "name": "Download Link",
+            "description": "This is the link to download fivem from. This is only used in the install script.\r\n\r\nThe file you link to needs to be an fx.tar.zx file.\r\n\r\nExample:\r\nhttps:\/\/runtime.fivem.net\/artifacts\/fivem\/build_proot_linux\/master\/1626-8c06e8bc3ed7e6690c6c2d9e0b90e29df65b3ea6\/fx.tar.xz",
+            "env_variable": "DOWNLOAD_URL",
+            "default_value": "",
+            "user_viewable": 0,
+            "user_editable": 0,
+            "rules": "string|nullable"
+        },
+        {
+            "name": "Steam Web Api Key",
+            "description": "Use your Steam WebApiKey or set to 'none'. Get your key at https:\/\/steamcommunity.com\/dev\/apikey\/",
+            "env_variable": "STEAM_WEBAPIKEY",
+            "default_value": "none",
+            "user_viewable": 1,
+            "user_editable": 1,
+            "rules": "required|string"
+        },
+        {
+            "name": "txAdmin Port",
+            "description": "The port for the txAdmin panel",
+            "env_variable": "TXADMIN_PORT",
+            "default_value": "40120",
+            "user_viewable": 1,
+            "user_editable": 0,
+            "rules": "required|string|max:20"
+        },
+        {
+            "name": "Enable txadmin",
+            "description": "Enables txadmin.\r\n\r\nset to 1 to enable. (default is 0 for false)",
+            "env_variable": "TXADMIN_ENABLE",
+            "default_value": "0",
+            "user_viewable": 1,
+            "user_editable": 1,
+            "rules": "required|bool"
+        }
+        ],
+        "feature_limits": {
+          "databases": 1,
+          "backups": 2
+        }
+      }
+  },
+  "vsc": {
+    "display": "Code-Server: VS Code",
+    "minimum": {
+      "ram": 1,
+      "disk": 1,
+      "cpu": 1
+    },
+    "maximum": {
+      "ram": null,
+      "disk": null,
+      "cpu": null
+    },
+    "info": {
+      "egg": 14,
+      "docker_image": "quay.io\/parkervcp\/pterodactyl-images:debian_nodejs-14",
+      "startup": "sh .local\/lib\/code-server-{{VERSION}}\/bin\/code-server",
+      "config": {
+          "files": "{\r\n    \".config\/code-server\/config.yaml\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n            \"password\": \"password: {{server.build.env.PASSWORD}}\",\r\n            \"bind-addr\": \"bind-addr: 0.0.0.0:{{server.build.default.port}}\"\r\n        }\r\n    }\r\n}",
+          "startup": "{\r\n    \"done\": \"HTTP server listening on\"\r\n}",
+          "logs": "{}",
+          "stop": "^C"
+      },
+      "scripts": {
+          "installation": {
+              "script": "apt update\r\napt install -y curl jq\r\nMATCH=linux-amd64\r\n\r\n# Create initial directories\r\nmkdir -p \/mnt\/server\r\ncd \/mnt\/server\r\n\r\n# Create needed directories\r\nmkdir -p \/mnt\/server\/.local\/lib \/mnt\/server\/.local\/bin \/mnt\/server\/.config\/code-server \/mnt\/server\/projects\r\n\r\n# Change permission of projects directory so it can be accessed by code-server\r\nchmod 777 \/mnt\/server\/projects\r\ntouch \"\/mnt\/server\/projects\/PLACE YOUR PROJECTS HERE\"\r\n\r\n# Check for available versions. Defaults to latest if no valid version is found.\r\nLATEST_JSON=$(curl --silent \"https:\/\/api.github.com\/repos\/cdr\/code-server\/releases\/latest\")\r\nRELEASES=$(curl --silent \"https:\/\/api.github.com\/repos\/cdr\/code-server\/releases\")\r\n\r\nif [ -z \"${VERSION}\" ] || [ \"${VERSION}\" == \"latest\" ]; then\r\n    DOWNLOAD_URL=$(echo ${LATEST_JSON} | jq .assets | jq -r .[].browser_download_url | grep -i ${MATCH})\r\nelse\r\n    VERSION_CHECK=$(echo ${RELEASES} | jq -r --arg VERSION \"v${VERSION}\" '.[] | select(.tag_name==$VERSION) | .tag_name')\r\n    if [ \"v${VERSION}\" == \"${VERSION_CHECK}\" ]; then\r\n        DOWNLOAD_URL=$(echo ${RELEASES} | jq -r --arg VERSION \"v${VERSION}\" '.[] | select(.tag_name==$VERSION) | .assets[].browser_download_url' | grep -i ${MATCH})\r\n    else\r\n        echo -e \"defaulting to latest release\"\r\n        DOWNLOAD_URL=$(echo ${LATEST_JSON} | jq .assets | jq -r .[].browser_download_url)\r\n    fi\r\nfi\r\n\r\n# Download the given Version and extract it\r\necho \"Downloading $DOWNLOAD_URL\"\r\ncurl -fL $DOWNLOAD_URL | tar -C \/mnt\/server\/.local\/lib -xz\r\nmv \/mnt\/server\/.local\/lib\/code-server-*linux-amd64 \/mnt\/server\/.local\/lib\/code-server-${VERSION}\r\n\r\n\r\nPATH=\"\/mnt\/server\/.local\/bin:$PATH\"\r\necho \"password: changeme\r\nbind-addr: 0.0.0.0\r\nauth: password\r\ncert: false\" > \/mnt\/server\/.config\/code-server\/config.yaml\r\n\r\necho \"Install complete\"",
+              "container": "debian:buster-slim",
+              "entrypoint": "bash"
+          }
+      },
+      "environment": [
+        {
+          "name": "Password",
+          "description": "Password to login to your Code-Server instance",
+          "env_variable": "PASSWORD",
+          "default_value": "changeme",
+          "user_viewable": true,
+          "user_editable": true,
+          "rules": "required|string|max:32"
+      },
+      {
+          "name": "Version",
+          "description": "Version for (re)installation such as 3.9.3. Defaults to latest version if no valid version is provided",
+          "env_variable": "VERSION",
+          "default_value": "latest",
+          "user_viewable": true,
+          "user_editable": true,
+          "rules": "string|max:20"
+      }
+      ],
+      "feature_limits": {
+        "databases": 2,
+        "backups": 2
+      }
+    }
+},
+"mumbleserver": {
+  "display": "Voice Server: Mumble Server",
+  "minimum": {
+    "ram": 1,
+    "disk": 1,
+    "cpu": 1
+  },
+  "maximum": {
+    "ram": null,
+    "disk": null,
+    "cpu": null
+  },
+  "info": {
+    "egg": 15,
+    "docker_image": "quay.io\/pterodactyl\/core:glibc",
+    "startup": ".\/murmur.x86 -fg",
+    "config": {
+        "files": "{\"murmur.ini\":{\"parser\": \"ini\", \"find\":{\"logfile\": \"murmur.log\", \"port\": \"{{server.build.default.port}}\", \"host\": \"0.0.0.0\", \"users\": \"{{server.build.env.MAX_USERS}}\"}}}",
+        "startup": "{\"done\": \"Server listening on\", \"userInteraction\": [ \"Generating new server certificate\"]}",
+        "logs": "{\"custom\": true, \"location\": \"logs\/murmur.log\"}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\n# Mumble Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\nGITHUB_PACKAGE=mumble-voip\/mumble\r\nMATCH=murmur-static\r\n\r\napt update\r\napt install -y tar curl jq\r\n\r\nif [ ! -d \/mnt\/server\/ ]; then\r\n    mkdir \/mnt\/server\/\r\nfi\r\n\r\ncd \/tmp\r\n\r\nif [ -z \"${GITHUB_USER}\" ] && [ -z \"${GITHUB_OAUTH_TOKEN}\" ] ; then\r\n    echo -e \"using anon api call\"\r\nelse\r\n    echo -e \"user and oauth token set\"\r\n    alias curl='curl -u ${GITHUB_USER}:${GITHUB_OAUTH_TOKEN} '\r\nfi\r\n\r\n## get release info and download links\r\nLATEST_JSON=$(curl --silent \"https:\/\/api.github.com\/repos\/${GITHUB_PACKAGE}\/releases\/latest\")\r\nRELEASES=$(curl --silent \"https:\/\/api.github.com\/repos\/${GITHUB_PACKAGE}\/releases\")\r\n\r\nif [ -z \"${VERSION}\" ] || [ \"${VERSION}\" == \"latest\" ]; then\r\n    DOWNLOAD_LINK=$(echo ${LATEST_JSON} | jq .assets | jq -r .[].browser_download_url | grep -m 1 -i ${MATCH})\r\nelse\r\n    VERSION_CHECK=$(echo ${RELEASES} | jq -r --arg VERSION \"${VERSION}\" '.[] | select(.tag_name==$VERSION) | .tag_name')\r\n    if [ \"${VERSION}\" == \"${VERSION_CHECK}\" ]; then\r\n        DOWNLOAD_LINK=$(echo ${RELEASES} | jq -r --arg VERSION \"${VERSION}\" '.[] | select(.tag_name==$VERSION) | .assets[].browser_download_url' | grep -m 1 -i ${MATCH})\r\n    else\r\n        echo -e \"defaulting to latest release\"\r\n        DOWNLOAD_LINK=$(echo ${LATEST_JSON} | jq .assets | jq -r .[].browser_download_url)\r\n    fi\r\nfi\r\n\r\ncurl -L ${DOWNLOAD_LINK} -o mumble-server.tar.bz2\r\n\r\ntar -xjvf mumble-server.tar.bz2\r\ncp -r murmur-static_x86-*\/* \/mnt\/server",
+            "container": "debian:buster-slim",
+            "entrypoint": "bash"
+        }
+    },
+    "environment": [
+      {
+        "name": "Maximum Users",
+        "description": "Maximum concurrent users on the mumble server.",
+        "env_variable": "MAX_USERS",
+        "default_value": "100",
+        "user_viewable": true,
+        "user_editable": false,
+        "rules": "required|numeric|digits_between:1,5"
+    },
+    {
+        "name": "Server Version",
+        "description": "Version of Mumble Server to download and use.",
+        "env_variable": "MUMBLE_VERSION",
+        "default_value": "1.3.1",
+        "user_viewable": true,
+        "user_editable": true,
+        "rules": "required|regex:\/^([0-9_\\.-]{5,8})$\/"
+    }
+    ],
+    "feature_limits": {
+      "databases": 1,
+      "backups": 2
+    }
+  }
+},
+"ts3-voice": {
+  "display": "Voice Server: Teamspeak3 Server",
+  "minimum": {
+    "ram": 1,
+    "disk": 1,
+    "cpu": 1
+  },
+  "maximum": {
+    "ram": null,
+    "disk": null,
+    "cpu": null
+  },
+  "info": {
+    "egg": 16,
+    "docker_image": "quay.io\/parkervcp\/pterodactyl-images:base_debian",
+    "startup": ".\/ts3server default_voice_port={{SERVER_PORT}} query_port={{SERVER_QUERY}} filetransfer_ip=0.0.0.0 filetransfer_port={{FILE_TRANSFER}} license_accepted=1",
+    "config": {
+        "files": "{}",
+        "startup": "{\r\n    \"done\": \"listening on 0.0.0.0:\",\r\n    \"userInteraction\": []\r\n}",
+        "logs": "{\r\n    \"custom\": true,\r\n    \"location\": \"logs\/ts3.log\"\r\n}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\n# TS3 Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\napt update\r\napt install -y tar curl jq bzip2\r\n\r\nif [ -z ${TS_VERSION} ] || [ ${TS_VERSION} == latest ]; then\r\n    TS_VERSION=$(curl -sSL https:\/\/teamspeak.com\/versions\/server.json | jq -r '.linux.x86_64.version')\r\nfi\r\n\r\ncd \/mnt\/server\r\n\r\necho -e \"getting files from http:\/\/files.teamspeak-services.com\/releases\/server\/${TS_VERSION}\/teamspeak3-server_linux_amd64-${TS_VERSION}.tar.bz2\"\r\ncurl -L http:\/\/files.teamspeak-services.com\/releases\/server\/${TS_VERSION}\/teamspeak3-server_linux_amd64-${TS_VERSION}.tar.bz2 | tar -xvj --strip-components=1",
+            "container": "debian:buster-slim",
+            "entrypoint": "bash"
+        }
+    },
+    "environment": [
+      {
+        "name": "Server Version",
+        "description": "The version of Teamspeak 3 to use when running the server.",
+        "env_variable": "TS_VERSION",
+        "default_value": "latest",
+        "user_viewable": true,
+        "user_editable": true,
+        "rules": "required|string|max:6"
+    },
+    {
+        "name": "File Transfer Port",
+        "description": "The Teamspeak file transfer port",
+        "env_variable": "FILE_TRANSFER",
+        "default_value": "30033",
+        "user_viewable": true,
+        "user_editable": false,
+        "rules": "required|integer|between:1,65535"
+    },
+    {
+        "name": "Server Query Port",
+        "description": "Teamspeak's Server Query Port",
+        "env_variable": "SERVER_QUERY",
+        "default_value": "10011",
+        "user_viewable": true,
+        "user_editable": false,
+        "rules": "required|integer|between:1,65535"
+    }
+    ],
+    "feature_limits": {
+      "databases": 1,
+      "backups": 2
+    }
+  }
+},
+"csgo": {
+  "display": "Counter-Strike: Global Offensive",
+  "minimum": {
+    "ram": 1,
+    "disk": 1,
+    "cpu": 1
+  },
+  "maximum": {
+    "ram": null,
+    "disk": null,
+    "cpu": null
+  },
+  "info": {
+    "egg": 17,
+    "docker_image": "quay.io\/pterodactyl\/core:source",
+    "startup": ".\/srcds_run -game csgo -console -port {{SERVER_PORT}} +ip 0.0.0.0 +map {{SRCDS_MAP}} -strictportbind -norestart +sv_setsteamaccount {{STEAM_ACC}}",
+    "config": {
+        "files": "{}",
+        "startup": "{\r\n    \"done\": \"Connection to Steam servers successful\",\r\n    \"userInteraction\": []\r\n}",
+        "logs": "{\r\n    \"custom\": true,\r\n    \"location\": \"logs\/latest.log\"\r\n}",
+        "stop": "quit"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\n# steamcmd Base Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\n# Image to install with is 'ubuntu:18.04'\r\napt -y update\r\napt -y --no-install-recommends install curl lib32gcc1 ca-certificates\r\n\r\n## just in case someone removed the defaults.\r\nif [ \"${STEAM_USER}\" == \"\" ]; then\r\n    STEAM_USER=anonymous\r\n    STEAM_PASS=\"\"\r\n    STEAM_AUTH=\"\"\r\nfi\r\n\r\n## download and install steamcmd\r\ncd \/tmp\r\nmkdir -p \/mnt\/server\/steamcmd\r\ncurl -sSL -o steamcmd.tar.gz https:\/\/steamcdn-a.akamaihd.net\/client\/installer\/steamcmd_linux.tar.gz\r\ntar -xzvf steamcmd.tar.gz -C \/mnt\/server\/steamcmd\r\ncd \/mnt\/server\/steamcmd\r\n\r\n# SteamCMD fails otherwise for some reason, even running as root.\r\n# This is changed at the end of the install process anyways.\r\nchown -R root:root \/mnt\r\nexport HOME=\/mnt\/server\r\n\r\n## install game using steamcmd\r\n.\/steamcmd.sh +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} +force_install_dir \/mnt\/server +app_update ${SRCDS_APPID} ${EXTRA_FLAGS} +quit ## other flags may be needed depending on install. looking at you cs 1.6\r\n\r\n## set up 32 bit libraries\r\nmkdir -p \/mnt\/server\/.steam\/sdk32\r\ncp -v linux32\/steamclient.so ..\/.steam\/sdk32\/steamclient.so\r\n\r\n## set up 64 bit libraries\r\nmkdir -p \/mnt\/server\/.steam\/sdk64\r\ncp -v linux64\/steamclient.so ..\/.steam\/sdk64\/steamclient.so",
+            "container": "ubuntu:18.04",
+            "entrypoint": "bash"
+        }
+    },
+    "environment": [
+      {
+        "name": "Map",
+        "description": "The default map for the server.",
+        "env_variable": "SRCDS_MAP",
+        "default_value": "de_dust2",
+        "user_viewable": true,
+        "user_editable": true,
+        "rules": "required|string|alpha_dash"
+    },
+    {
+        "name": "Steam Account Token",
+        "description": "The Steam Account Token required for the server to be displayed publicly.",
+        "env_variable": "STEAM_ACC",
+        "default_value": "",
+        "user_viewable": true,
+        "user_editable": true,
+        "rules": "required|string|alpha_num|size:32"
+    },
+    {
+        "name": "Source AppID",
+        "description": "Required for game to update on server restart. Do not modify this.",
+        "env_variable": "SRCDS_APPID",
+        "default_value": "740",
+        "user_viewable": false,
+        "user_editable": false,
+        "rules": "required|string|max:20"
+    }
+    ],
+    "feature_limits": {
+      "databases": 1,
+      "backups": 2
+    }
+  }
+},
+"garrysmod": {
+  "display": "Garrys Mod",
+  "minimum": {
+    "ram": 1,
+    "disk": 1,
+    "cpu": 1
+  },
+  "maximum": {
+    "ram": null,
+    "disk": null,
+    "cpu": null
+  },
+  "info": {
+    "egg": 18,
+    "docker_image": "quay.io\/pterodactyl\/core:source",
+    "startup": ".\/srcds_run -game garrysmod -console -port {{SERVER_PORT}} +ip 0.0.0.0 +host_workshop_collection {{WORKSHOP_ID}} +map {{SRCDS_MAP}} +gamemode {{GAMEMODE}} -strictportbind -norestart +sv_setsteamaccount {{STEAM_ACC}} +maxplayers {{MAX_PLAYERS}}  -tickrate {{TICKRATE}}",
+    "config": {
+        "files": "{}",
+        "startup": "{\r\n    \"done\": \"gameserver Steam ID\",\r\n    \"userInteraction\": []\r\n}",
+        "logs": "{\r\n    \"custom\": true,\r\n    \"location\": \"logs\/latest.log\"\r\n}",
+        "stop": "quit"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\n# steamcmd Base Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\n# Image to install with is 'debian:buster-slim'\r\napt -y update\r\napt -y --no-install-recommends install curl lib32gcc1 ca-certificates\r\n\r\n## just in case someone removed the defaults.\r\nif [ \"${STEAM_USER}\" == \"\" ]; then\r\n    echo -e \"steam user is not set.\\n\"\r\n    echo -e \"Using anonymous user.\\n\"\r\n    STEAM_USER=anonymous\r\n    STEAM_PASS=\"\"\r\n    STEAM_AUTH=\"\"\r\nelse\r\n    echo -e \"user set to ${STEAM_USER}\"\r\nfi\r\n\r\n## download and install steamcmd\r\ncd \/tmp\r\nmkdir -p \/mnt\/server\/steamcmd\r\ncurl -sSL -o steamcmd.tar.gz https:\/\/steamcdn-a.akamaihd.net\/client\/installer\/steamcmd_linux.tar.gz\r\ntar -xzvf steamcmd.tar.gz -C \/mnt\/server\/steamcmd\r\ncd \/mnt\/server\/steamcmd\r\n\r\n# SteamCMD fails otherwise for some reason, even running as root.\r\n# This is changed at the end of the install process anyways.\r\nchown -R root:root \/mnt\r\nexport HOME=\/mnt\/server\r\n\r\n## install game using steamcmd\r\n.\/steamcmd.sh +login ${STEAM_USER} ${STEAM_PASS} ${STEAM_AUTH} $( [[ \"${WINDOWS_INSTALL}\" == \"1\" ]] && printf %s '+@sSteamCmdForcePlatformType windows' ) +force_install_dir \/mnt\/server +app_update ${SRCDS_APPID} ${EXTRA_FLAGS} validate +quit ## other flags may be needed depending on install. looking at you cs 1.6\r\n\r\n## set up 32 bit libraries\r\nmkdir -p \/mnt\/server\/.steam\/sdk32\r\ncp -v linux32\/steamclient.so ..\/.steam\/sdk32\/steamclient.so\r\n\r\n## set up 64 bit libraries\r\nmkdir -p \/mnt\/server\/.steam\/sdk64\r\ncp -v linux64\/steamclient.so ..\/.steam\/sdk64\/steamclient.so\r\n\r\n# Creating needed default files for the game\r\ncd \/mnt\/server\/garrysmod\/lua\/autorun\/server\r\necho '\r\n-- Docs: https:\/\/wiki.facepunch.com\/gmod\/resource.AddWorkshop\r\n-- Place the ID of the workshop addon you want to be downloaded to people who join your server, not the collection ID\r\n-- Use https:\/\/beta.configcreator.com\/create\/gmod\/resources.lua to easily create a list based on your collection ID\r\n\r\nresource.AddWorkshop( \"\" )\r\n' > workshop.lua\r\n\r\ncd \/mnt\/server\/garrysmod\/cfg\r\necho '\r\n\/\/ Please do not set RCon in here, use the startup parameters.\r\n\r\nhostname\t\t\"New Gmod Server\"\r\nsv_password\t\t\"\"\r\nsv_loadingurl   \"\"\r\n\r\n\/\/ Steam Server List Settings\r\nsv_region \"255\"\r\nsv_lan \"0\"\r\nsv_max_queries_sec_global \"30000\"\r\nsv_max_queries_window \"45\"\r\nsv_max_queries_sec \"5\"\r\n\r\n\/\/ Server Limits\r\nsbox_maxprops\t\t100\r\nsbox_maxragdolls\t5\r\nsbox_maxnpcs\t\t10\r\nsbox_maxballoons\t10\r\nsbox_maxeffects\t\t10\r\nsbox_maxdynamite\t10\r\nsbox_maxlamps\t\t10\r\nsbox_maxthrusters\t10\r\nsbox_maxwheels\t\t10\r\nsbox_maxhoverballs\t10\r\nsbox_maxvehicles\t20\r\nsbox_maxbuttons\t\t10\r\nsbox_maxsents\t\t20\r\nsbox_maxemitters\t5\r\nsbox_godmode\t\t0\r\nsbox_noclip\t\t    0\r\n\r\n\/\/ Network Settings - Please keep these set to default.\r\n\r\nsv_minrate\t\t75000\r\nsv_maxrate\t\t0\r\ngmod_physiterations\t2\r\nnet_splitpacket_maxrate\t45000\r\ndecalfrequency\t\t12 \r\n\r\n\/\/ Execute Ban Files - Please do not edit\r\nexec banned_ip.cfg \r\nexec banned_user.cfg \r\n\r\n\/\/ Add custom lines under here\r\n' > server.cfg",
+            "container": "debian:buster-slim",
+            "entrypoint": "bash"
+        }
+    },
+    "environment": [
+      {
+        "name": "Map",
+        "description": "The default map for the server.",
+        "env_variable": "SRCDS_MAP",
+        "default_value": "gm_flatgrass",
+        "user_viewable": true,
+        "user_editable": true,
+        "rules": "required|string|alpha_dash"
+    },
+    {
+        "name": "Steam Account Token",
+        "description": "The Steam Account Token required for the server to be displayed publicly.",
+        "env_variable": "STEAM_ACC",
+        "default_value": "",
+        "user_viewable": true,
+        "user_editable": true,
+        "rules": "nullable|string|alpha_num|size:32"
+    },
+    {
+        "name": "Source AppID",
+        "description": "Required for game to update on server restart. Do not modify this.",
+        "env_variable": "SRCDS_APPID",
+        "default_value": "4020",
+        "user_viewable": false,
+        "user_editable": false,
+        "rules": "required|string|max:20"
+    },
+    {
+        "name": "Workshop ID",
+        "description": "The ID of your workshop collection (the numbers at the end of the URL)",
+        "env_variable": "WORKSHOP_ID",
+        "default_value": "",
+        "user_viewable": true,
+        "user_editable": true,
+        "rules": "nullable|integer"
+    },
+    {
+        "name": "Gamemode",
+        "description": "The gamemode of your server.",
+        "env_variable": "GAMEMODE",
+        "default_value": "sandbox",
+        "user_viewable": true,
+        "user_editable": true,
+        "rules": "required|string"
+    },
+    {
+        "name": "Max Players",
+        "description": "The maximum amount of players allowed on your game server.",
+        "env_variable": "MAX_PLAYERS",
+        "default_value": "32",
+        "user_viewable": true,
+        "user_editable": true,
+        "rules": "required|integer|max:128"
+    },
+    {
+        "name": "Tickrate",
+        "description": "The tickrate defines how fast the server will update each entities location.",
+        "env_variable": "TICKRATE",
+        "default_value": "22",
+        "user_viewable": true,
+        "user_editable": true,
+        "rules": "required|integer|max:100"
+    }
+    ],
+    "feature_limits": {
+      "databases": 1,
+      "backups": 2
+    }
+  }
+},
+"mongodb": {
+  "display": "Database: MongoDB",
+  "minimum": {
+    "ram": 1,
+    "disk": 1,
+    "cpu": 1
+  },
+  "maximum": {
+    "ram": null,
+    "disk": null,
+    "cpu": null
+  },
+  "info": {
+    "egg": 19,
+    "docker_image": "quay.io\/parkervcp\/pterodactyl-images:db_mongo-4",
+    "startup": "mongod --fork --dbpath \/home\/container\/mongodb\/ --port ${SERVER_PORT} --bind_ip 0.0.0.0 --logpath \/home\/container\/logs\/mongo.log; until nc -z -v -w5 127.0.0.1 ${SERVER_PORT}; do echo 'Waiting for mongodb connection...'; sleep 5; done && mongo 127.0.0.1:${SERVER_PORT} && mongo --eval \"db.getSiblingDB('admin').shutdownServer()\" 127.0.0.1:${SERVER_PORT}",
+    "config": {
+        "files": "{}",
+        "startup": "{\r\n    \"done\": \"child process started successfully\"\r\n}",
+        "logs": "{}",
+        "stop": "exit"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash \r\nif [ ! -d \/mnt\/server\/ ]; then\r\n    mkdir \/mnt\/server\/\r\nfi\r\n\r\ncd \/mnt\/server\/\r\n\r\ncp \/etc\/mongod.conf.orig \/mnt\/server\/mongod.conf\r\n\r\nmkdir mongodb logs\r\n\r\nmongod --port 27017 --dbpath \/mnt\/server\/mongodb\/ --logpath \/mnt\/server\/logs\/mongo.log --fork\r\n\r\nmongo --eval \"db.getSiblingDB('admin').createUser({user: '${MONGO_USER}', pwd: '${MONGO_USER_PASS}', roles: ['root']})\"\r\n\r\nmongo --eval \"db.getSiblingDB('admin').shutdownServer()\"",
+            "container": "mongo:4-bionic",
+            "entrypoint": "bash"
+        }
+    },
+    "environment": [
+      {
+        "name": "Mongo Admin Username",
+        "description": "The MongoDB Admin user",
+        "env_variable": "MONGO_USER",
+        "default_value": "admin",
+        "user_viewable": true,
+        "user_editable": true,
+        "rules": "required|string"
+    },
+    {
+        "name": "Mongo Admin Password",
+        "description": "",
+        "env_variable": "MONGO_USER_PASS",
+        "default_value": "aP@55word",
+        "user_viewable": true,
+        "user_editable": true,
+        "rules": "required|string"
+    }
+    ],
+    "feature_limits": {
+      "databases": 1,
+      "backups": 2
+    }
+  }
+},
+"mysql": {
+  "display": "Database: MySQL / MariaDB",
+  "minimum": {
+    "ram": 1,
+    "disk": 1,
+    "cpu": 1
+  },
+  "maximum": {
+    "ram": null,
+    "disk": null,
+    "cpu": null
+  },
+  "info": {
+    "egg": 20,
+    "docker_image": "quay.io\/parkervcp\/pterodactyl-images:db_mariadb",
+    "startup": "{ \/usr\/sbin\/mysqld & } && sleep 5 && mysql -u root",
+    "config": {
+        "files": "{\r\n    \".my.cnf\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n            \"port\": \"port = {{server.build.default.port}}\",\r\n            \"bind-address\": \"bind-address=0.0.0.0\"\r\n        }\r\n    }\r\n}",
+        "startup": "{\r\n    \"done\": \"mysqld: ready for connections\"\r\n}",
+        "logs": "{}",
+        "stop": "shutdown; exit;"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#!\/bin\/bash\r\n# MariaDB Installation Script\r\n#\r\n# Server Files: \/mnt\/server\r\nset -x\r\n\r\necho -e \"installing dependencies\"\r\napt-get -y update\r\napt-get -y install curl\r\n\r\n## add user\r\necho -e \"adding container user\"\r\nuseradd -d \/home\/container -m container -s \/bin\/bash\r\n\r\n## own server to container user\r\nchown container: \/mnt\/server\/\r\n\r\n## run install script as user\r\necho -e \"getting my.conf\"\r\nif [ -f \/mnt\/server\/.my.cnf ]; then\r\n    echo -e \"moving current config for install\"\r\n    mv \/mnt\/server\/.my.cnf \/mnt\/server\/custom.my.cnf\r\n    runuser -l container -c 'curl https:\/\/raw.githubusercontent.com\/parkervcp\/eggs\/master\/database\/sql\/mariadb\/install.my.cnf > \/mnt\/server\/.my.cnf'\r\nelse\r\n    runuser -l container -c 'curl https:\/\/raw.githubusercontent.com\/parkervcp\/eggs\/master\/database\/sql\/mariadb\/install.my.cnf > \/mnt\/server\/.my.cnf'\r\nfi\r\n\r\n## mkdir and install db\r\necho -e \"installing mysql database\"\r\nrunuser -l container -c 'mkdir -p \/mnt\/server\/run\/mysqld'\r\nrunuser -l container -c 'mkdir -p \/mnt\/server\/log\/mysql'\r\nrunuser -l container -c 'mkdir \/mnt\/server\/mysql'\r\n\r\nrunuser -l container -c 'mysql_install_db --defaults-file=\/mnt\/server\/.my.cnf'\r\n\r\nif [ -f \/mnt\/server\/custom.my.cnf ]; then\r\n    echo -e \"moving current config back in place\"\r\n    mv \/mnt\/server\/custom.my.cnf \/mnt\/server\/.my.cnf\r\nelse\r\n    curl https:\/\/raw.githubusercontent.com\/parkervcp\/eggs\/master\/database\/sql\/mariadb\/my.cnf > \/mnt\/server\/.my.cnf\r\nfi\r\n\r\necho -e \"install complete\"\r\n\r\nexit",
+            "container": "mariadb:10.3",
+            "entrypoint": "bash"
+        }
+    },
+    "environment": [],
+    "feature_limits": {
+      "databases": 1,
+      "backups": 2
+    }
+  }
+},
+"postgressql": {
+  "display": "Database: PostgresSQL",
+  "minimum": {
+    "ram": 1,
+    "disk": 1,
+    "cpu": 1
+  },
+  "maximum": {
+    "ram": null,
+    "disk": null,
+    "cpu": null
+  },
+  "info": {
+    "egg": 21,
+    "docker_image": "quay.io\/parkervcp\/pterodactyl-images:db_postgres",
+    "startup": "postgres  -D \/home\/container\/postgres_db\/",
+    "config": {
+        "files": "{\r\n    \"postgres_db\/postgresql.conf\": {\r\n        \"parser\": \"file\",\r\n        \"find\": {\r\n\t\t    \"#port =\": \"port = {{server.build.default.port}}\",\r\n            \"#external_pid_file =\": \"external_pid_file = '\/home\/container\/postgres_db\/run\/postgres.pid'\",\r\n            \"#unix_socket_directories =\": \"unix_socket_directories = '\/home\/container\/postgres_db\/run\/'\"\r\n        }\r\n    }\r\n}",
+        "startup": "{\r\n    \"done\": \"database system is ready to accept connections\"\r\n}",
+        "logs": "{}",
+        "stop": "^C"
+    },
+    "scripts": {
+        "installation": {
+            "script": "#! \/bin\/ash\r\nadduser -D -h \/home\/container container\r\n\r\necho $POSTGRES_PASSWORD > .passwd\r\n\r\nchown -R container: \/mnt\/server\/\r\n\r\ncat .passwd\r\n\r\nsu container -c 'initdb -D \/mnt\/server\/postgres_db\/ -A md5 -U container --pwfile .passwd'\r\n\r\nmkdir -p \/mnt\/server\/postgres_db\/run\/\r\n\r\necho -e \"Done\"",
+            "container": "postgres:13.1-alpine",
+            "entrypoint": "ash"
+        }
+    },
+    "environment": [
+      {
+        "name": "Database Password",
+        "description": "The Postgres user password that can be changed and should change on server restart.",
+        "env_variable": "PGPASSWORD",
+        "default_value": "P@55word",
+        "user_viewable": 1,
+        "user_editable": 1,
+        "rules": "required|string|max:20"
+    },
+    {
+        "name": "SuperUser Password",
+        "description": "The postgres super user password with a strong default.\r\nYou should be generating new ones for each server.\r\nIf you don't then users can hit other users DB's",
+        "env_variable": "PGROOT",
+        "default_value": "ZPWgpMN4hETqjXAV",
+        "user_viewable": 1,
+        "user_editable": 0,
+        "rules": "required|string|max:20"
+    },
+    {
+        "name": "Postgres User",
+        "description": "The user for the postgres database",
+        "env_variable": "PGUSER",
+        "default_value": "pterodactyl",
+        "user_viewable": 1,
+        "user_editable": 0,
+        "rules": "required|string|max:20"
+    },
+    {
+        "name": "Postgres Database",
+        "description": "The postgres database the user will have access too.",
+        "env_variable": "PGDATABASE",
+        "default_value": "pterodactyl",
+        "user_viewable": 1,
+        "user_editable": 0,
+        "rules": "required|string|max:20"
+    }
+    ],
+    "feature_limits": {
+      "databases": 1,
+      "backups": 2
+    }
+  }
+}
+        },
+        "coins": {
+          "enabled": true,
+          "store": {
+            "_comment": "The cost and per is not intended to used with 0. This is not intended to sell resources for coins. Make sure coins are enabled too, or else there can be errors.",
+            "enabled": true,
+            "ram": {
+              "cost": 1,
+              "per": 20
+            },
+            "disk": {
+              "cost": 1,
+              "per": 10
+            },
+            "cpu": {
+              "cost": 1,
+              "per": 5
+            },
+            "servers": {
+              "cost": 15,
+              "per": 1
+            }
+          }
+        }
+      },
+      "arcio": {
+        "_comment": "You can make an arc.io widget on https://arc.io. You can get money using arc.io.",
+        "enabled": true,
+        "widgetid": "arc.io widget id here",
+        "afk page": {
+          "_comment": "This will not effect any current arc.io sessions, and will require a restart to kick everyone out of the websocket sesison.",
+          "_comment2": "Make sure coins are enabled if you choose to enable this option!",
+          "enabled": true,
+          "_comment3": "If you change the path, you need to restart for it to take full effect.",
+          "path": "arcio",
+          "_comment4": "This afk page will give the users 1 coins every 60 seconds.",
+          "every": 60,
+          "_comment5": "The coins variable is meant to not be under 1. There may be bugs if the coins variable is less than 1.",
+          "coins": 1
+        }
+      }
+    }
+  }
