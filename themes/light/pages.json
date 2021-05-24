@@ -54,11 +54,11 @@
     ],
     "variables": {
         "footerad": true,
-        "faviconlink": "https://camo.githubusercontent.com/d2e9b4ddcf7618efa123961ae270f7eaa83362f8/68747470733a2f2f6d656469612e646973636f72646170702e6e65742f6174746163686d656e74732f3730363937303631373437313330333736312f3736383630363132323134373730383936382f707465726f64616374796c2d70616e656c2e706e67",
+        "faviconlink": "",
         "home": {
-            "title": "ParadiseHost - Home",
-            "name": "ParadiseHost",
-            "topmsg": "ParadiseHost",
+            "title": "RelaxNodes - Home",
+            "name": "RelaxNodes",
+            "topmsg": "RelaxNodest",
             "bottommsg": "An dashboard addition to the Pterodactyl Panel.",
             "buttontext": {
                 "loggedin": {
@@ -72,28 +72,28 @@
             }
         },
         "dashboard": {
-            "title": "ParadiseHost - Dashboard"
+            "title": "RelaxNodes - Dashboard"
         },
         "servers": {
             "title": {
-                "list": "ParadiseHost - Servers",
-                "create": "ParadiseHost - Create Server",
-                "modify": "ParadiseHost - Modify Server"
+                "list": "RelaxNodes - Servers",
+                "create": "RelaxNodes - Create Server",
+                "modify": "RelaxNodes - Modify Server"
             }
         },
         "error": {
-            "title": "ParadiseHost - 404"
+            "title": "RelaxNodes - 404"
         },
         "admin": {
             "title": {
-                "default": "ParadiseHost - Admin"
+                "default": "RelaxNodes - Admin"
             }
         },
         "store": {
-            "title": "ParadiseHost - Store"
+            "title": "RelaxNodes - Store"
         },
         "arcio": {
-            "title": "ParadiseHost - Arc.IO AFK Page"
+            "title": "RelaxNodes - Arc.IO AFK Page"
         }
     }
 }
